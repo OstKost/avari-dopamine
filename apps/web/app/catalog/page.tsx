@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, ShoppingBag } from "lucide-react";
+import { ShoppingBag, MapPin, ChevronRight } from "lucide-react";
 import { SearchBar } from "@/components/features/catalog/search-bar";
 import { ProductCard } from "@/components/features/catalog/product-card";
 import { Badge } from "@/components/ui/badge";
@@ -70,72 +70,93 @@ export default async function CatalogPage({
   }
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-8 space-y-8">
-      {/* Top Banner & Search */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="dopamine" className="gap-1">
-              <Sparkles className="h-3.5 w-3.5 text-rose-500" />
-              10 ₽ фиксированная цена
-            </Badge>
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+      {/* Pickup Point Selection Pill */}
+      <Link href="/onboarding" className="block group">
+        <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-[#0B1622]/90 border border-[#1E3A50] group-hover:border-teal-400/50 group-hover:shadow-glow-teal transition-all">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/15 text-amber-400 border border-amber-400/30">
+              <MapPin className="h-4 w-4" />
+            </div>
+            <div>
+              <span className="text-[11px] font-semibold text-[#9FB3C4] block">Пункт выдачи</span>
+              <span className="text-sm font-bold text-[#F4F1E8] group-hover:text-amber-300 transition-colors">
+                ул. Малая Садовая, 12 (240м)
+              </span>
+            </div>
           </div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
-            Каталог товаров
+          <div className="flex items-center gap-1 text-xs font-bold text-teal-400">
+            <span>Сменить</span>
+            <ChevronRight className="h-4 w-4" />
+          </div>
+        </div>
+      </Link>
+
+      {/* Top Banner & Search */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#F4F1E8] tracking-tight">
+            Каталог дофамина
           </h1>
-          <p className="text-sm text-zinc-500">
-            Найдено {total} синтетических товаров
+          <p className="text-xs sm:text-sm text-[#9FB3C4]">
+            {total} товаров · Любой заказ за 10 ₽ по промокоду
           </p>
         </div>
 
         <SearchBar />
       </div>
 
-      {/* Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      {/* Category Pills matching screen-01 */}
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
         <Link href="/catalog">
-          <Badge
-            variant={!category_id ? "default" : "secondary"}
-            className="px-4 py-2 text-sm rounded-xl cursor-pointer hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+          <div
+            className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-full cursor-pointer transition-all ${
+              !category_id
+                ? "bg-amber-400/20 text-amber-300 border border-amber-400 shadow-glow-amber"
+                : "bg-[#0B1622] text-[#9FB3C4] border border-[#1E3A50] hover:border-teal-400/50 hover:text-[#F4F1E8]"
+            }`}
           >
-            Все категории
-          </Badge>
+            Все
+          </div>
         </Link>
         {categories.map((cat) => {
           const isActive = category_id === cat.id;
           return (
             <Link key={cat.id} href={`/catalog?category_id=${cat.id}${q ? `&q=${encodeURIComponent(q)}` : ""}`}>
-              <Badge
-                variant={isActive ? "default" : "secondary"}
-                className="px-4 py-2 text-sm rounded-xl cursor-pointer whitespace-nowrap hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              <div
+                className={`px-5 py-2 text-xs sm:text-sm font-bold rounded-full cursor-pointer whitespace-nowrap transition-all ${
+                  isActive
+                    ? "bg-amber-400/20 text-amber-300 border border-amber-400 shadow-glow-amber"
+                    : "bg-[#0B1622] text-[#9FB3C4] border border-[#1E3A50] hover:border-teal-400/50 hover:text-[#F4F1E8]"
+                }`}
               >
                 {cat.name}
-              </Badge>
+              </div>
             </Link>
           );
         })}
       </div>
 
-      {/* Product Grid */}
+      {/* Product Grid (2 cols mobile, 3 tablet, 4 desktop) */}
       {products.length === 0 ? (
-        <div className="flex min-h-[40vh] flex-col items-center justify-center text-center p-8 border border-dashed border-zinc-300 dark:border-zinc-800 rounded-3xl">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400 dark:bg-zinc-800 mb-4">
+        <div className="flex min-h-[40vh] flex-col items-center justify-center text-center p-8 border border-dashed border-[#1E3A50] rounded-3xl bg-[#0B1622]/40">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#122234] text-amber-400 mb-4 border border-[#1E3A50]">
             <ShoppingBag className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          <h3 className="text-lg font-bold text-[#F4F1E8]">
             Ничего не найдено
           </h3>
-          <p className="text-sm text-zinc-500 max-w-sm mt-1">
+          <p className="text-sm text-[#9FB3C4] max-w-sm mt-1">
             Попробуйте изменить поисковый запрос или выбрать другую категорию.
           </p>
           <Link href="/catalog" className="mt-4">
-            <Badge variant="outline" className="px-4 py-1.5 cursor-pointer">
+            <Badge variant="gold" className="px-4 py-1.5 cursor-pointer">
               Сбросить фильтры
             </Badge>
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-6">
           {products.map((product) => (
             <ProductCard
               key={product.id}

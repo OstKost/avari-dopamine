@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Sparkles, ArrowRight, Zap, ShieldCheck, HeartHandshake } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, ArrowRight, Zap, ShieldCheck, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,17 +8,35 @@ import { Badge } from "@/components/ui/badge";
 export default function HomePage() {
   return (
     <div className="flex flex-col items-center">
-      {/* Hero Section */}
-      <section className="relative w-full overflow-hidden py-20 md:py-32 bg-gradient-to-b from-rose-50/50 via-white to-transparent dark:from-zinc-900/50 dark:via-zinc-950 dark:to-transparent">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 text-center">
-          <Badge variant="dopamine" className="mb-6 px-4 py-1.5 text-sm gap-2">
-            <Sparkles className="h-4 w-4 animate-spin text-rose-500" />
-            Инвариант INV-01: Любой заказ ровно за 10 ₽
-          </Badge>
+      {/* Hero Section with detailed logo and ambient glow */}
+      <section className="relative w-full overflow-hidden py-16 sm:py-24 md:py-28">
+        {/* Ambient radial glows */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-amber-500/15 rounded-full blur-[90px] pointer-events-none" />
 
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl text-zinc-900 dark:text-zinc-50 max-w-4xl mx-auto leading-tight">
+        <div className="container relative z-10 mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-6">
+          {/* Detailed Emblem in Hero */}
+          <div className="inline-flex relative p-3 sm:p-4 rounded-3xl bg-[#0B1622]/90 border border-amber-400/40 shadow-glow-amber-lg group">
+            <Image
+              src="/logo-detailed.png"
+              alt="Avari Dopamine Emblem"
+              width={88}
+              height={88}
+              className="object-contain drop-shadow-[0_0_20px_rgba(242,184,75,0.4)] group-hover:scale-105 transition-transform duration-500"
+              priority
+            />
+          </div>
+
+          <div className="flex items-center justify-center gap-2">
+            <Badge variant="gold" className="px-4 py-1 text-xs gap-1.5 shadow-glow-amber">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-spin" />
+              <span>Фиксированная цена: 10.00 ₽ за любой заказ</span>
+            </Badge>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-[#F4F1E8] max-w-3xl mx-auto leading-tight">
             Мгновенный выброс{" "}
-            <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#F2B84B] via-[#FFD37A] to-[#F2B84B] bg-clip-text text-transparent">
               дофамина
             </span>{" "}
             в каждом заказе
@@ -43,47 +62,47 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Cards */}
-      <section className="container mx-auto max-w-7xl px-4 sm:px-6 py-16">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-          <Card className="hover:shadow-lg transition-shadow border-rose-100 dark:border-zinc-800">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500">
+      {/* Features Grid */}
+      <section className="container mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl hover:border-amber-400/50 hover:shadow-glow-amber transition-all">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/15 text-amber-300 border border-amber-400/30">
                 <Zap className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h3 className="text-lg font-bold text-[#F4F1E8]">
                 10 ₽ Фиксированная цена
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Сколько бы товаров ни было в корзине, итоговая сумма к оплате строго фиксирована инвариантом INV-01.
+              <p className="text-xs sm:text-sm text-[#9FB3C4] leading-relaxed">
+                Сколько бы товаров ни было в корзине, промокод автоматически делает скидку до фиксированных 10.00 ₽ (INV-01).
               </p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-purple-100 dark:border-zinc-800">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-600">
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl hover:border-teal-400/50 hover:shadow-glow-teal transition-all">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-400/15 text-teal-300 border border-teal-400/30">
                 <ShieldCheck className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                Синтетические ПВЗ
+              <h3 className="text-lg font-bold text-[#F4F1E8]">
+                Живой трекинг и ПВЗ
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Геодезический алгоритм вычисляет ближайшие пункты выдачи на расстоянии от 100 до 500 метров.
+              <p className="text-xs sm:text-sm text-[#9FB3C4] leading-relaxed">
+                Сферическая геодезия генерирует 5–8 точек выдачи в 100–500 метрах, а стейт-машина симулирует путь курьера в реальном времени.
               </p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow border-pink-100 dark:border-zinc-800">
-            <CardContent className="p-8 space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-500/10 text-pink-500">
-                <HeartHandshake className="h-6 w-6" />
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl hover:border-amber-400/50 hover:shadow-glow-amber transition-all">
+            <CardContent className="p-6 space-y-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-400/15 text-amber-300 border border-amber-400/30">
+                <Flame className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                Живой трекинг
+              <h3 className="text-lg font-bold text-[#F4F1E8]">
+                Стрики и награды
               </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Асинхронная стейт-машина заказов с публикацией Kafka-событий через Transactional Outbox.
+              <p className="text-xs sm:text-sm text-[#9FB3C4] leading-relaxed">
+                Сохраняйте ежедневный стрик, повышайте уровень аккаунта и открывайте коллекцию достижений с золотым сиянием.
               </p>
             </CardContent>
           </Card>

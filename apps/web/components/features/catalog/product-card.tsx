@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ShoppingBag } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,6 @@ export function ProductCard({
   categoryName,
   priceRub,
   imageSeed,
-  description,
 }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -62,9 +61,9 @@ export function ProductCard({
 
   return (
     <Link href={`/product/${id}`} className="group block h-full">
-      <Card className="h-full overflow-hidden border-zinc-200/80 bg-white hover:shadow-xl hover:border-rose-200 dark:border-zinc-800 dark:bg-zinc-900 transition-all duration-300 flex flex-col justify-between">
+      <Card className="h-full overflow-hidden border-[#1E3A50] bg-[#0B1622]/90 hover:border-amber-400/60 hover:shadow-glow-amber transition-all duration-300 flex flex-col justify-between rounded-2xl">
         <div>
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#050B14]">
             <Image
               src={imageUrl}
               alt={name}
@@ -74,50 +73,41 @@ export function ProductCard({
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {categoryName && (
-              <div className="absolute left-3 top-3">
-                <Badge variant="secondary" className="backdrop-blur-md bg-white/90 dark:bg-zinc-900/90 text-xs font-medium">
+              <div className="absolute left-2.5 top-2.5">
+                <Badge variant="teal" className="backdrop-blur-md text-[10px] font-bold px-2 py-0.5">
                   {categoryName}
                 </Badge>
               </div>
             )}
           </div>
 
-          <CardContent className="p-4 space-y-2">
-            <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 line-clamp-1 group-hover:text-rose-500 transition-colors">
+          <CardContent className="p-3.5 space-y-1">
+            <h3 className="font-bold text-sm sm:text-base text-[#F4F1E8] line-clamp-1 group-hover:text-amber-300 transition-colors">
               {name}
             </h3>
-            {description && (
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2">
-                {description}
-              </p>
-            )}
+            <div className="text-base sm:text-lg font-black text-[#F4F1E8] tracking-tight">
+              {formatPrice(priceRub)}
+            </div>
           </CardContent>
         </div>
 
-        <div className="p-4 pt-0 flex items-center justify-between mt-auto">
-          <div>
-            <span className="text-xs text-zinc-400 block -mb-0.5">В корзине за</span>
-            <span className="text-lg font-black text-zinc-900 dark:text-zinc-50">
-              {formatPrice(priceRub)}
-            </span>
-          </div>
-
+        <div className="p-3.5 pt-0 mt-auto">
           <Button
             size="sm"
-            variant={isAdded ? "secondary" : "default"}
-            className="gap-1.5 rounded-xl transition-all"
+            variant={isAdded ? "secondary" : "gold"}
+            className="w-full gap-1.5 rounded-xl font-bold py-2 text-xs sm:text-sm"
             isLoading={isAdding}
             onClick={handleAddToCart}
           >
             {isAdded ? (
               <>
-                <Check className="h-4 w-4 text-emerald-600" />
-                <span>В корзине</span>
+                <Check className="h-4 w-4 text-emerald-400" />
+                <span>Добавлено</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="h-3.5 w-3.5" />
-                <span>Добавить</span>
+                <span className="text-base leading-none font-black">+</span>
+                <span>В корзину</span>
               </>
             )}
           </Button>

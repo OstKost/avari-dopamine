@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Trophy, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, Trophy } from "lucide-react";
 
 interface CelebrationProps {
   show: boolean;
@@ -23,7 +24,7 @@ export function CelebrationConfetti({ show, orderNumber }: CelebrationProps) {
 
   useEffect(() => {
     if (show && !prefersReducedMotion) {
-      const colors = ["#f43f5e", "#8b5cf6", "#ec4899", "#10b981", "#3b82f6", "#f59e0b"];
+      const colors = ["#F2B84B", "#FFD37A", "#54ACBF", "#A7EBF2", "#5FD98A"];
       const newParticles = Array.from({ length: 40 }).map((_, i) => ({
         id: i,
         x: Math.random() * 100,
@@ -39,7 +40,11 @@ export function CelebrationConfetti({ show, orderNumber }: CelebrationProps) {
   if (!show) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500/10 via-rose-500/10 to-purple-500/10 border border-emerald-500/20 p-6 sm:p-8 text-center space-y-4 shadow-lg animate-fadeIn">
+    <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#122234] via-[#0B1622] to-[#122234] border border-amber-500/30 p-6 sm:p-8 text-center space-y-4 shadow-2xl shadow-amber-500/10 animate-fadeIn">
+      {/* Background glow */}
+      <div className="pointer-events-none absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-16 left-1/2 -translate-x-1/2 w-64 h-64 bg-teal-500/15 rounded-full blur-3xl" />
+
       {!prefersReducedMotion && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           {particles.map((p) => (
@@ -60,19 +65,25 @@ export function CelebrationConfetti({ show, orderNumber }: CelebrationProps) {
         </div>
       )}
 
-      <div className="relative z-10 flex flex-col items-center space-y-2">
-        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 animate-bounce">
-          <CheckCircle2 className="h-8 w-8" />
+      <div className="relative z-10 flex flex-col items-center space-y-3">
+        <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#1E3A50] to-[#0E1B29] border border-amber-400 text-amber-400 shadow-xl shadow-amber-500/30 animate-bounce">
+          <Image
+            src="/logo-minimal-star.png"
+            alt="Success Star"
+            width={36}
+            height={36}
+            className="object-contain"
+          />
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
+            <Trophy className="h-5 w-5 text-amber-400" />
+            <h3 className="text-2xl font-black text-[#F4F1E8] tracking-tight">
               Заказ доставлен в ПВЗ!
             </h3>
-            <Sparkles className="h-5 w-5 text-rose-500" />
+            <Sparkles className="h-5 w-5 text-teal-400" />
           </div>
-          <p className="text-sm text-zinc-500 max-w-md mx-auto">
+          <p className="text-sm text-[#9FB3C4] max-w-md mx-auto">
             {orderNumber ? `Заказ #${orderNumber.slice(0, 8)} готов к выдаче.` : "Ваш заказ готов к выдаче."} Заберите его в удобное время!
           </p>
         </div>

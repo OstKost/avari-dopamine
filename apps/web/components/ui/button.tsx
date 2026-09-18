@@ -2,36 +2,43 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "secondary" | "outline" | "ghost" | "destructive" | "glow";
-  size?: "sm" | "md" | "lg" | "icon";
+  variant?: "default" | "gold" | "reward" | "teal" | "secondary" | "outline" | "ghost" | "destructive" | "glow";
+  size?: "sm" | "md" | "lg" | "icon" | "pill";
   isLoading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "md", isLoading, children, disabled, ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 disabled:pointer-events-none disabled:opacity-50 select-none active:scale-[0.98]";
+      "inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 disabled:pointer-events-none disabled:opacity-50 select-none active:scale-[0.98]";
 
     const variants = {
       default:
-        "bg-rose-500 text-white shadow-md shadow-rose-500/20 hover:bg-rose-600 hover:shadow-lg hover:shadow-rose-500/30",
+        "bg-gradient-to-r from-[#F2B84B] via-[#FFD37A] to-[#F2B84B] text-[#050B14] font-bold shadow-md shadow-amber-500/20 hover:brightness-110 hover:shadow-glow-amber",
+      gold:
+        "bg-gradient-to-r from-[#F2B84B] via-[#FFD37A] to-[#F2B84B] text-[#050B14] font-extrabold shadow-md shadow-amber-500/25 hover:brightness-110 hover:shadow-glow-amber",
+      reward:
+        "bg-gradient-to-r from-[#FFD37A] via-[#F2B84B] to-[#C6912F] text-[#050B14] font-black shadow-lg shadow-amber-500/30 hover:brightness-110 hover:shadow-glow-amber-lg",
+      teal:
+        "bg-gradient-to-r from-[#54ACBF] to-[#0D9488] text-[#050B14] font-bold shadow-md shadow-teal-500/20 hover:brightness-110 hover:shadow-glow-teal",
       secondary:
-        "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-700",
+        "bg-[#122234] text-[#F4F1E8] border border-[#1E3A50] hover:bg-[#1E3A50] hover:text-white",
       outline:
-        "border border-zinc-300 bg-transparent hover:bg-zinc-100 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800",
+        "border border-[#1E3A50] bg-transparent hover:bg-[#122234] text-[#F4F1E8] hover:border-amber-400/50",
       ghost:
-        "hover:bg-zinc-100 text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white",
+        "hover:bg-[#122234] text-[#9FB3C4] hover:text-[#F4F1E8]",
       destructive:
-        "bg-red-500 text-white hover:bg-red-600 shadow-sm shadow-red-500/20",
+        "bg-red-500/90 text-white hover:bg-red-600 shadow-sm shadow-red-500/20",
       glow:
-        "bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 text-white font-semibold shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 hover:opacity-95 animate-pulse-slow",
+        "bg-gradient-to-r from-[#F2B84B] via-[#FFD37A] to-[#F2B84B] text-[#050B14] font-bold shadow-lg shadow-amber-500/30 hover:shadow-glow-amber-lg hover:scale-[1.02]",
     };
 
     const sizes = {
-      sm: "h-8 px-3 text-xs rounded-md gap-1.5",
-      md: "h-10 px-4 py-2 text-sm rounded-lg gap-2",
-      lg: "h-12 px-6 text-base rounded-xl gap-2.5",
-      icon: "h-10 w-10 p-0 rounded-lg",
+      sm: "h-8 px-3 text-xs rounded-lg gap-1.5",
+      md: "h-10 px-4 py-2 text-sm rounded-xl gap-2",
+      lg: "h-12 px-6 text-base rounded-2xl gap-2.5",
+      pill: "h-9 px-4 text-xs font-bold rounded-full gap-1.5",
+      icon: "h-10 w-10 p-0 rounded-xl",
     };
 
     return (

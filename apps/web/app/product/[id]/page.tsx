@@ -47,14 +47,17 @@ export default async function ProductDetailPage({
 
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-8 space-y-8">
-      <Link href="/catalog" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
+      <Link
+        href="/catalog"
+        className="inline-flex items-center gap-2 text-sm text-[#9FB3C4] hover:text-[#F4F1E8] transition-colors"
+      >
         <ArrowLeft className="h-4 w-4" />
         <span>Назад в каталог</span>
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Product Image */}
-        <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-md">
+        <div className="relative aspect-square w-full rounded-3xl overflow-hidden bg-[#0B1622] border border-[#1E3A50] shadow-xl">
           <Image
             src={imageUrl}
             alt={product.name}
@@ -66,7 +69,7 @@ export default async function ProductDetailPage({
           />
           {product.category_name && (
             <div className="absolute top-4 left-4">
-              <Badge variant="secondary" className="backdrop-blur-md bg-white/90 dark:bg-zinc-900/90 text-sm font-semibold">
+              <Badge variant="secondary" className="backdrop-blur-md bg-[#0B1622]/90 border border-[#1E3A50] text-[#F4F1E8] text-sm font-semibold">
                 {product.category_name}
               </Badge>
             </div>
@@ -76,50 +79,57 @@ export default async function ProductDetailPage({
         {/* Product Info */}
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
-            <Badge variant="dopamine" className="gap-1.5 px-3 py-1">
-              <Sparkles className="h-4 w-4 text-rose-500" />
-              Инвариант INV-01: Любой заказ ровно 10 ₽
-            </Badge>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Инвариант INV-01: Любой заказ ровно 10 ₽</span>
+              </span>
+            </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-black text-[#F4F1E8] tracking-tight">
               {product.name}
             </h1>
 
-            <p className="text-base text-zinc-600 dark:text-zinc-300 leading-relaxed">
-              {product.description || "Высококачественный синтетический товар из каталога Dopamine Market. Гарантия моментального удовольствия."}
+            <p className="text-base text-[#9FB3C4] leading-relaxed">
+              {product.description || "Высококачественный синтетический товар из каталога Avari Dopamine. Гарантия моментального удовольствия."}
             </p>
 
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <span className="text-xs text-zinc-400 block mb-1">Сумма в корзине</span>
-              <span className="text-3xl font-black text-zinc-900 dark:text-zinc-50">
-                {formatPrice(product.price_rub)}
-              </span>
+            <div className="pt-4 border-t border-[#1E3A50]">
+              <span className="text-xs text-[#5E7488] block mb-1">Сумма в каталоге</span>
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-black text-[#F4F1E8]">
+                  {formatPrice(product.price_rub)}
+                </span>
+                <span className="text-xs text-amber-400 font-semibold">
+                  (при заказе действует промокод на 10 ₽)
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="space-y-4">
             <Link href="/catalog" className="block">
-              <Button size="lg" variant="glow" className="w-full gap-2 text-base rounded-2xl">
+              <Button size="lg" variant="reward" className="w-full gap-2 text-base rounded-2xl shadow-lg shadow-amber-500/20">
                 <Package className="h-5 w-5" />
                 <span>Добавить и перейти к покупкам</span>
               </Button>
             </Link>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <Card className="border-zinc-200/60 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <Card className="border-[#1E3A50] bg-[#0B1622]/60">
                 <CardContent className="p-3.5 flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                  <ShieldCheck className="h-5 w-5 text-teal-400 flex-shrink-0" />
+                  <span className="text-xs text-[#9FB3C4] font-medium">
                     Синтетический оригинал
                   </span>
                 </CardContent>
               </Card>
 
-              <Card className="border-zinc-200/60 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <Card className="border-[#1E3A50] bg-[#0B1622]/60">
                 <CardContent className="p-3.5 flex items-center gap-3">
-                  <Zap className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                    Доставка в ПВЗ за 100-500м
+                  <Zap className="h-5 w-5 text-amber-400 flex-shrink-0" />
+                  <span className="text-xs text-[#9FB3C4] font-medium">
+                    ПВЗ в радиусе 100-500м
                   </span>
                 </CardContent>
               </Card>

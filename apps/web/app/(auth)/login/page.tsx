@@ -58,15 +58,17 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="shadow-lg border-zinc-200 dark:border-zinc-800">
+    <Card className="shadow-2xl border-[#1E3A50] bg-[#0B1622]">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl">Вход в аккаунт</CardTitle>
-        <CardDescription>Введите email и пароль для доступа к заказам</CardDescription>
+        <CardTitle className="text-2xl text-[#F4F1E8]">Вход в аккаунт</CardTitle>
+        <CardDescription className="text-[#9FB3C4]">
+          Введите email и пароль для доступа к заказам
+        </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           {serverError && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+            <div className="rounded-xl bg-rose-950/40 border border-rose-500/30 p-3 text-sm text-rose-300">
               {serverError}
             </div>
           )}
@@ -89,13 +91,13 @@ export default function LoginPage() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" variant="default" className="w-full" isLoading={isLoading}>
+          <Button type="submit" variant="reward" className="w-full text-base font-bold py-3 rounded-xl shadow-lg shadow-amber-500/20" isLoading={isLoading}>
             Войти
           </Button>
 
-          <p className="text-center text-xs text-zinc-500">
+          <p className="text-center text-xs text-[#9FB3C4]">
             Нет аккаунта?{" "}
-            <Link href="/register" className="font-semibold text-rose-500 hover:text-rose-600 underline">
+            <Link href="/register" className="font-semibold text-amber-400 hover:text-amber-300 underline underline-offset-2">
               Зарегистрироваться
             </Link>
           </p>

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Trash2, Plus, Minus, Sparkles, MapPin, ArrowRight, ShoppingBag, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Minus, Sparkles, MapPin, ShoppingBag, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
@@ -171,47 +171,49 @@ export default function CartPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-2xl bg-red-50 p-4 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+        <div className="flex items-center gap-3 rounded-2xl bg-red-500/10 border border-red-500/30 p-4 text-sm text-red-300">
           <AlertCircle className="h-5 w-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* INV-01 Prominent Invariant Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 p-1 text-white shadow-xl shadow-rose-500/20">
-        <div className="rounded-[22px] bg-white dark:bg-zinc-950 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Auto-applied Promo Code Banner */}
+      <div className="rounded-3xl bg-gradient-to-r from-[#F2B84B]/20 via-[#54ACBF]/20 to-[#FFD37A]/20 p-0.5 border border-amber-400/40 shadow-glow-amber">
+        <div className="rounded-[22px] bg-[#0B1622]/95 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-rose-500 animate-spin" />
-              <span className="font-bold text-sm tracking-wide text-rose-500 uppercase">
-                Инвариант INV-01
+              <Sparkles className="h-4 w-4 text-amber-400 animate-spin" />
+              <span className="font-extrabold text-xs tracking-wide text-amber-300 uppercase">
+                Промокод «AVARI_DOPAMINE» применен
               </span>
             </div>
-            <h3 className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
-              Сумма заказа: строго 10.00 ₽
+            <h3 className="text-xl sm:text-2xl font-black text-[#F4F1E8]">
+              Скидка на всю корзину: заказ всего за 10.00 ₽
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-500">
-              Каталожная стоимость товаров ({formatPrice(cart.total_price_rub)}) носит справочный характер. Итоговый платёж всегда фиксирован.
+            <p className="text-xs sm:text-sm text-[#9FB3C4]">
+              Каталожная стоимость товаров {formatPrice(cart.total_price_rub)} пересчитана промокодом по инварианту INV-01.
             </p>
           </div>
 
-          <div className="flex flex-col items-end flex-shrink-0">
-            <span className="text-xs text-zinc-400">Итого к оплате</span>
-            <span className="text-3xl font-black text-rose-500">10.00 ₽</span>
+          <div className="flex flex-col items-start sm:items-end flex-shrink-0">
+            <span className="text-[11px] font-semibold text-[#9FB3C4]">К оплате по промокоду</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-400 drop-shadow-[0_0_12px_rgba(242,184,75,0.4)]">
+              10.00 ₽
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Cart Items List */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3.5">
           {cart.items.map((item) => {
             const imageUrl = getProductImageUrl(item.image_seed || item.product_id, item.name, item.category_name);
             return (
-              <Card key={item.product_id} className="border-zinc-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
-                <CardContent className="p-4 sm:p-6 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="relative h-20 w-20 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex-shrink-0">
+              <Card key={item.product_id} className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm overflow-hidden rounded-2xl hover:border-teal-400/40 transition-all">
+                <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                    <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden bg-[#050B14] border border-[#1E3A50] flex-shrink-0">
                       <Image
                         src={imageUrl}
                         alt={item.name}
@@ -220,46 +222,48 @@ export default function CartPage() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-base text-zinc-900 dark:text-zinc-100 line-clamp-1">
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <h4 className="font-bold text-sm sm:text-base text-[#F4F1E8] line-clamp-1">
                         {item.name}
                       </h4>
                       {item.category_name && (
-                        <p className="text-xs text-zinc-400">{item.category_name}</p>
+                        <p className="text-[11px] text-[#9FB3C4]">{item.category_name}</p>
                       )}
-                      <p className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">
+                      <p className="text-sm font-extrabold text-amber-300">
                         {formatPrice(item.price_rub)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 border border-zinc-200 dark:border-zinc-700 rounded-xl p-1 bg-zinc-50/50 dark:bg-zinc-900/50">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    {/* Stepper pill matching screen-04 */}
+                    <div className="flex items-center gap-1 border border-[#1E3A50] rounded-full p-1 bg-[#0E1B29]">
                       <button
                         onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}
                         disabled={isUpdating}
-                        className="p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+                        className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-[#1E3A50] text-[#9FB3C4] hover:text-[#F4F1E8] disabled:opacity-50 transition-colors"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="w-6 text-center text-sm font-bold">
+                      <span className="w-6 text-center text-xs sm:text-sm font-bold text-[#F4F1E8]">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}
                         disabled={isUpdating}
-                        className="p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 disabled:opacity-50"
+                        className="h-7 w-7 rounded-full flex items-center justify-center hover:bg-[#1E3A50] text-[#9FB3C4] hover:text-[#F4F1E8] disabled:opacity-50 transition-colors"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3.5 w-3.5" />
                       </button>
                     </div>
 
                     <button
                       onClick={() => handleRemoveItem(item.product_id)}
                       disabled={isUpdating}
-                      className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                      className="p-1.5 text-[#5E7488] hover:text-red-400 transition-colors"
+                      title="Удалить из корзины"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </CardContent>
@@ -269,34 +273,34 @@ export default function CartPage() {
         </div>
 
         {/* Sidebar Summary & Pickup point */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Pickup Point Card */}
-          <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-            <CardHeader className="p-5 pb-3">
-              <CardTitle className="text-base flex items-center justify-between">
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl">
+            <CardHeader className="p-4 sm:p-5 pb-2">
+              <CardTitle className="text-sm font-bold flex items-center justify-between text-[#F4F1E8]">
                 <span>Пункт выдачи</span>
-                <Link href="/onboarding" className="text-xs font-semibold text-rose-500 hover:text-rose-600">
+                <Link href="/onboarding" className="text-xs font-bold text-teal-400 hover:text-teal-300">
                   {cart.pickup_point ? "Сменить" : "Выбрать"}
                 </Link>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-5 pt-0">
+            <CardContent className="p-4 sm:p-5 pt-0">
               {cart.pickup_point ? (
-                <div className="flex items-start gap-3 p-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl">
-                  <MapPin className="h-5 w-5 text-rose-500 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3 bg-[#0E1B29] border border-[#1E3A50] rounded-xl">
+                  <MapPin className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h5 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                    <h5 className="font-bold text-xs sm:text-sm text-[#F4F1E8]">
                       {cart.pickup_point.name}
                     </h5>
-                    <p className="text-xs text-zinc-500">
-                      Дистанция ~{Math.round(cart.pickup_point.distance_meters)}м
+                    <p className="text-[11px] text-[#9FB3C4]">
+                      ~{Math.round(cart.pickup_point.distance_meters)}м от вас
                     </p>
                   </div>
                 </div>
               ) : (
                 <Link href="/onboarding">
                   <Button variant="outline" className="w-full text-xs rounded-xl gap-2">
-                    <MapPin className="h-4 w-4 text-rose-500" />
+                    <MapPin className="h-4 w-4 text-amber-400" />
                     <span>Выбрать ближайший ПВЗ</span>
                   </Button>
                 </Link>
@@ -304,38 +308,46 @@ export default function CartPage() {
             </CardContent>
           </Card>
 
-          {/* Summary & Checkout */}
-          <Card className="border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+          {/* Summary & Checkout matching screen-04 */}
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl">
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              <div className="space-y-2.5 text-xs sm:text-sm text-[#9FB3C4]">
                 <div className="flex justify-between">
                   <span>Товары ({cart.total_quantity} шт.)</span>
-                  <span>{formatPrice(cart.total_price_rub)}</span>
+                  <span className="font-semibold text-[#F4F1E8]">{formatPrice(cart.total_price_rub)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Доставка в ПВЗ</span>
-                  <span className="text-emerald-500 font-medium">Бесплатно</span>
+                  <span className="text-teal-400 font-semibold">Бесплатно</span>
                 </div>
-                <div className="flex justify-between text-rose-500 font-semibold">
-                  <span>Dopamine скидка</span>
-                  <span>- {formatPrice(parseFloat(cart.total_price_rub) - 10.0 > 0 ? parseFloat(cart.total_price_rub) - 10.0 : 0)}</span>
+                <div className="flex justify-between text-amber-300 font-bold">
+                  <span>Промокод «AVARI_DOPAMINE»</span>
+                  <span>- {formatPrice(Math.max(0, parseFloat(cart.total_price_rub) - 10.0))}</span>
                 </div>
-                <div className="border-t border-zinc-200 dark:border-zinc-800 pt-3 flex justify-between text-lg font-black text-zinc-900 dark:text-zinc-100">
-                  <span>К оплате</span>
-                  <span className="text-rose-500">10.00 ₽</span>
+                <div className="border-t border-[#1E3A50] pt-3 flex justify-between items-center text-base sm:text-lg font-black text-[#F4F1E8]">
+                  <span>Итого к оплате</span>
+                  <span className="text-2xl font-black text-amber-400 drop-shadow-[0_0_8px_rgba(242,184,75,0.4)]">
+                    10.00 ₽
+                  </span>
                 </div>
               </div>
 
-              <Button
-                size="lg"
-                variant="glow"
-                className="w-full text-base rounded-2xl gap-2"
-                isLoading={isCheckingOut}
-                onClick={handleCheckout}
-              >
-                <span>Оформить заказ за 10 ₽</span>
-                <ArrowRight className="h-5 w-5" />
-              </Button>
+              <div className="pt-2 space-y-2">
+                <Button
+                  size="lg"
+                  variant="gold"
+                  className="w-full text-base font-black rounded-2xl gap-2 h-12 shadow-glow-amber-lg"
+                  isLoading={isCheckingOut}
+                  onClick={handleCheckout}
+                >
+                  <ShoppingBag className="h-5 w-5" />
+                  <span>Оформить заказ</span>
+                </Button>
+
+                <p className="text-center text-[11px] font-bold text-amber-300/90 flex items-center justify-center gap-1">
+                  <span>✨ +15 XP за первый заказ дня ✨</span>
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>

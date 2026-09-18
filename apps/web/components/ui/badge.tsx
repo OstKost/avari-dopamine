@@ -2,18 +2,20 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "secondary" | "success" | "warning" | "destructive" | "outline" | "dopamine";
+  variant?: "default" | "gold" | "teal" | "secondary" | "success" | "warning" | "destructive" | "outline" | "dopamine";
 }
 
 export function Badge({ className, variant = "default", ...props }: BadgeProps) {
   const variants = {
-    default: "bg-zinc-900 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900",
-    secondary: "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100",
-    success: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-    warning: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-    destructive: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
-    outline: "border border-zinc-200 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100",
-    dopamine: "bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900 font-semibold",
+    default: "bg-[#122234] text-[#F4F1E8] border border-[#1E3A50]",
+    gold: "bg-amber-400/15 text-amber-300 border border-amber-400/40 shadow-sm shadow-amber-500/10 font-bold",
+    teal: "bg-teal-400/15 text-teal-300 border border-teal-400/40 shadow-sm shadow-teal-500/10 font-bold",
+    secondary: "bg-[#122234]/80 text-[#9FB3C4] border border-[#1E3A50]",
+    success: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 font-semibold",
+    warning: "bg-amber-500/15 text-amber-300 border border-amber-500/40 font-semibold",
+    destructive: "bg-red-500/15 text-red-300 border border-red-500/40 font-semibold",
+    outline: "border border-[#1E3A50] text-[#9FB3C4] bg-transparent",
+    dopamine: "bg-amber-400/20 text-amber-300 border border-amber-400/50 font-bold shadow-glow-amber",
   };
 
   return (

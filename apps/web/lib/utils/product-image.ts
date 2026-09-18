@@ -5,17 +5,35 @@
  */
 
 const PALETTES = [
-  { bg1: "#8B5CF6", bg2: "#EC4899", accent: "#F472B6", icon: "✨" }, // Purple - Pink
-  { bg1: "#3B82F6", bg2: "#06B6D4", accent: "#67E8F9", icon: "⚡" }, // Blue - Cyan
-  { bg1: "#10B981", bg2: "#059669", accent: "#6EE7B7", icon: "🌱" }, // Emerald
-  { bg1: "#F59E0B", bg2: "#EF4444", accent: "#FCA5A5", icon: "🔥" }, // Amber - Red
-  { bg1: "#6366F1", bg2: "#8B5CF6", accent: "#C4B5FD", icon: "💎" }, // Indigo - Violet
-  { bg1: "#EC4899", bg2: "#F43F5E", accent: "#FDA4AF", icon: "❤️" }, // Pink - Rose
-  { bg1: "#14B8A6", bg2: "#3B82F6", accent: "#93C5FD", icon: "🌊" }, // Teal - Blue
-  { bg1: "#84CC16", bg2: "#10B981", accent: "#A7F3D0", icon: "🍀" }, // Lime - Green
-  { bg1: "#F97316", bg2: "#FB923C", accent: "#FED7AA", icon: "🎯" }, // Orange
-  { bg1: "#6D28D9", bg2: "#4F46E5", accent: "#A5B4FC", icon: "🔮" }, // Deep Purple
+  { bg1: "#071828", bg2: "#0A283B", glow: "#54ACBF", accent: "#FFD37A" }, // Deep Midnight Teal
+  { bg1: "#101B2E", bg2: "#192B45", glow: "#3B82F6", accent: "#93C5FD" }, // Deep Navy
+  { bg1: "#1A1728", bg2: "#2A2042", glow: "#8B5CF6", accent: "#F472B6" }, // Deep Violet
+  { bg1: "#1C141E", bg2: "#2F1926", glow: "#EC4899", accent: "#FDA4AF" }, // Deep Crimson
+  { bg1: "#0C1F1D", bg2: "#133835", glow: "#10B981", accent: "#6EE7B7" }, // Deep Emerald
+  { bg1: "#1F1A0E", bg2: "#352B14", glow: "#F2B84B", accent: "#FFD37A" }, // Deep Amber Gold
 ];
+
+function detectIcon(name?: string, category?: string): string {
+  const combined = `${name || ""} ${category || ""}`.toLowerCase();
+  if (combined.includes("пицц")) return "🍕";
+  if (combined.includes("донат") || combined.includes("пончик")) return "🍩";
+  if (combined.includes("кола") || combined.includes("газиров")) return "🥤";
+  if (combined.includes("бургер") || combined.includes("чизбургер")) return "🍔";
+  if (combined.includes("чипс") || combined.includes("снек") || combined.includes("сухарик")) return "🍟";
+  if (combined.includes("сок") || combined.includes("лимонад") || combined.includes("смузи")) return "🧃";
+  if (combined.includes("кофе") || combined.includes("капучино") || combined.includes("латте")) return "☕";
+  if (combined.includes("шоколад") || combined.includes("конфет")) return "🍫";
+  if (combined.includes("суши") || combined.includes("ролл")) return "🍣";
+  if (combined.includes("морожен") || combined.includes("пломбир")) return "🍦";
+  if (combined.includes("наушник") || combined.includes("аудио")) return "🎧";
+  if (combined.includes("свеч") || combined.includes("лампа")) return "🕯️";
+  if (combined.includes("игр") || combined.includes("кубик") || combined.includes("антистресс")) return "🎮";
+  if (combined.includes("книг") || combined.includes("блокнот")) return "📖";
+  if (combined.includes("чай") || combined.includes("травы")) return "🍵";
+  if (combined.includes("ягод") || combined.includes("фрукт") || combined.includes("витамин")) return "🍓";
+  if (combined.includes("выпечк") || combined.includes("круассан")) return "🥐";
+  return "✨";
+}
 
 function hashString(str: string): number {
   let hash = 0;
@@ -30,8 +48,9 @@ export function getProductImageUrl(seed: string, name?: string, category?: strin
   const cleanSeed = seed || "dopamine-item";
   const hash = hashString(cleanSeed);
   const palette = PALETTES[hash % PALETTES.length];
-  const title = name ? (name.length > 28 ? name.slice(0, 26) + "…" : name) : "Dopamine Item";
-  const cat = category || "10.00 ₽";
+  const icon = detectIcon(name, category);
+  const title = name ? (name.length > 26 ? name.slice(0, 24) + "…" : name) : "Dopamine Item";
+  const cat = category || "Синтетический маркет";
 
   // Escape special XML characters
   const escapeXml = (unsafe: string) =>
@@ -47,42 +66,59 @@ export function getProductImageUrl(seed: string, name?: string, category?: strin
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
   <defs>
-    <linearGradient id="grad-${hash}" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bgGrad-${hash}" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${palette.bg1}" />
       <stop offset="100%" stop-color="${palette.bg2}" />
     </linearGradient>
-    <filter id="glow-${hash}" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="15" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
+    <radialGradient id="ambientGlow-${hash}" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="${palette.glow}" stop-opacity="0.35" />
+      <stop offset="70%" stop-color="${palette.glow}" stop-opacity="0.05" />
+      <stop offset="100%" stop-color="${palette.glow}" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD37A" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#F2B84B" stop-opacity="0" />
+    </radialGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="400" height="300" fill="url(#grad-${hash})" />
+  <!-- Background Base -->
+  <rect width="400" height="300" fill="url(#bgGrad-${hash})" />
+  <rect width="400" height="300" fill="url(#ambientGlow-${hash})" />
 
-  <!-- Decorative geometric background patterns -->
-  <circle cx="340" cy="60" r="100" fill="white" fill-opacity="0.08" />
-  <circle cx="60" cy="240" r="80" fill="white" fill-opacity="0.06" />
-  <path d="M 0 200 Q 150 120 400 240 L 400 300 L 0 300 Z" fill="white" fill-opacity="0.05" />
+  <!-- Ambient star particles -->
+  <circle cx="65" cy="45" r="1.5" fill="#FFD37A" opacity="0.7" />
+  <circle cx="330" cy="70" r="2" fill="#54ACBF" opacity="0.8" />
+  <circle cx="345" cy="220" r="1.5" fill="#FFD37A" opacity="0.6" />
+  <circle cx="45" cy="235" r="2" fill="#A7EBF2" opacity="0.7" />
+  <polygon points="320,40 323,45 328,45 324,48 326,53 320,50 314,53 316,48 312,45 317,45" fill="#FFD37A" opacity="0.4" />
 
-  <!-- Center Card / Icon Platter -->
-  <g transform="translate(200, 120)">
-    <circle cx="0" cy="0" r="54" fill="white" fill-opacity="0.18" />
-    <circle cx="0" cy="0" r="44" fill="white" fill-opacity="0.25" filter="url(#glow-${hash})" />
-    <text x="0" y="16" font-size="42" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${palette.icon}</text>
+  <!-- Main Center Icon Platter with layered golden halo -->
+  <g transform="translate(200, 115)">
+    <circle cx="0" cy="0" r="62" fill="#050B14" fill-opacity="0.6" />
+    <circle cx="0" cy="0" r="54" fill="#0B1622" stroke="${palette.glow}" stroke-width="1.5" stroke-opacity="0.4" />
+    <circle cx="0" cy="0" r="46" fill="${palette.glow}" fill-opacity="0.12" />
+    
+    <!-- Central Icon -->
+    <text x="0" y="19" font-size="46" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${icon}</text>
+    
+    <!-- Star sparkle on top right of platter -->
+    <g transform="translate(38, -32) scale(0.7)">
+      <polygon points="0,-12 3,-3 12,0 3,3 0,12 -3,3 -12,0 -3,-3" fill="#FFD37A" />
+    </g>
   </g>
 
-  <!-- Product Badge Pill -->
-  <g transform="translate(20, 24)">
-    <rect width="90" height="24" rx="12" fill="white" fill-opacity="0.22" />
-    <text x="45" y="16" fill="white" font-size="11" font-weight="700" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">10.00 ₽</text>
+  <!-- Card Border outline -->
+  <rect x="1" y="1" width="398" height="298" rx="16" fill="none" stroke="#1E3A50" stroke-width="1.5" stroke-opacity="0.6" />
+
+  <!-- Category Badge Pill -->
+  <g transform="translate(200, 218)">
+    <text x="0" y="0" fill="#9FB3C4" font-size="12" font-weight="600" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" letter-spacing="0.5">${safeCategory}</text>
   </g>
 
-  <!-- Product Category Label -->
-  <text x="200" y="222" fill="white" fill-opacity="0.85" font-size="12" font-weight="500" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${safeCategory}</text>
-
-  <!-- Product Name Label -->
-  <text x="200" y="248" fill="white" font-size="16" font-weight="700" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${safeTitle}</text>
+  <!-- Product Name Title -->
+  <g transform="translate(200, 246)">
+    <text x="0" y="0" fill="#F4F1E8" font-size="16" font-weight="800" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">${safeTitle}</text>
+  </g>
 </svg>`;
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

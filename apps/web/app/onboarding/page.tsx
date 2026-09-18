@@ -77,7 +77,6 @@ export default function OnboardingPage() {
       },
       () => {
         setIsLoadingGeo(false);
-        // Fallback on city
         handleGenerate(undefined, undefined, city);
       },
       { timeout: 5000 }
@@ -109,29 +108,29 @@ export default function OnboardingPage() {
   return (
     <div className="container mx-auto max-w-2xl px-4 sm:px-6 py-12 space-y-8">
       <div className="text-center space-y-3">
-        <Badge variant="dopamine" className="gap-1.5 px-3 py-1">
-          <Sparkles className="h-4 w-4 text-rose-500" />
-          Синтетические ПВЗ (INV-03)
-        </Badge>
-        <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-400 text-xs font-bold">
+          <Sparkles className="h-4 w-4" />
+          <span>Синтетические ПВЗ (INV-03)</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-[#F4F1E8] tracking-tight">
           Выберите удобный пункт выдачи
         </h1>
-        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm sm:text-base text-[#9FB3C4]">
           Мы автоматически рассчитаем точки в радиусе 100–500 метров от вашей позиции.
         </p>
       </div>
 
       {error && (
-        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+        <div className="rounded-2xl bg-rose-950/40 border border-rose-500/30 p-4 text-sm text-rose-300">
           {error}
         </div>
       )}
 
       {/* Geolocation & City Form */}
-      <Card className="shadow-lg border-zinc-200/80 dark:border-zinc-800">
+      <Card className="shadow-xl border-[#1E3A50] bg-[#0B1622]">
         <CardHeader>
-          <CardTitle className="text-lg">Определение местоположения</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg text-[#F4F1E8]">Определение местоположения</CardTitle>
+          <CardDescription className="text-[#9FB3C4]">
             Разрешите браузеру доступ к геолокации или введите город вручную
           </CardDescription>
         </CardHeader>
@@ -139,7 +138,7 @@ export default function OnboardingPage() {
           <Button
             variant="default"
             size="lg"
-            className="w-full gap-2 text-base rounded-xl"
+            className="w-full gap-2 text-base rounded-xl bg-teal-500 hover:bg-teal-400 text-[#050B14] font-bold"
             isLoading={isLoadingGeo || isGenerating}
             onClick={handleUseGeolocation}
           >
@@ -148,8 +147,8 @@ export default function OnboardingPage() {
           </Button>
 
           <div className="relative flex items-center justify-center">
-            <div className="border-t border-zinc-200 dark:border-zinc-800 w-full" />
-            <span className="bg-white dark:bg-zinc-900 px-3 text-xs text-zinc-400 uppercase font-bold">
+            <div className="border-t border-[#1E3A50] w-full" />
+            <span className="bg-[#0B1622] px-3 text-xs text-[#5E7488] uppercase font-bold">
               или
             </span>
           </div>
@@ -159,13 +158,13 @@ export default function OnboardingPage() {
               placeholder="Город (например, Ростов-на-Дону)"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="rounded-xl"
+              className="rounded-xl border-[#1E3A50] bg-[#0E1B29] text-[#F4F1E8]"
             />
             <Button
               variant="secondary"
               isLoading={isGenerating}
               onClick={() => handleGenerate(undefined, undefined, city)}
-              className="rounded-xl px-6"
+              className="rounded-xl px-6 border-[#1E3A50] bg-[#122234] text-[#F4F1E8] hover:bg-[#1E3A50]"
             >
               Найти
             </Button>
@@ -177,10 +176,10 @@ export default function OnboardingPage() {
       {points.length > 0 && (
         <div className="space-y-4 pt-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-xl font-bold text-[#F4F1E8]">
               Ближайшие пункты выдачи ({points.length})
             </h2>
-            <span className="text-xs text-zinc-500 font-medium">Радиус 100-500м</span>
+            <span className="text-xs text-teal-400 font-medium">Радиус 100-500м</span>
           </div>
 
           <div className="grid grid-cols-1 gap-3">
@@ -192,43 +191,43 @@ export default function OnboardingPage() {
                   onClick={() => setSelectedPointId(pt.id)}
                   className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? "border-rose-500 bg-rose-50/50 dark:bg-rose-950/20 shadow-md"
-                      : "border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300"
+                      ? "border-amber-400 bg-[#122234] shadow-lg shadow-amber-500/10"
+                      : "border-[#1E3A50] bg-[#0B1622] hover:border-[#5E7488]"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-xl transition-colors ${
                         isSelected
-                          ? "bg-rose-500 text-white shadow-sm"
-                          : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800"
+                          ? "bg-amber-400 text-[#050B14] shadow-sm font-bold"
+                          : "bg-[#0E1B29] text-teal-400 border border-[#1E3A50]"
                       }`}
                     >
                       <MapPin className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                      <h4 className="font-bold text-sm text-[#F4F1E8]">
                         {pt.name}
                       </h4>
-                      <p className="text-xs text-zinc-500">
-                        Синтетический ПВЗ Dopamine Market
+                      <p className="text-xs text-[#9FB3C4]">
+                        Синтетический ПВЗ Avari Dopamine
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Badge variant={isSelected ? "dopamine" : "secondary"}>
+                    <Badge variant={isSelected ? "default" : "secondary"} className={isSelected ? "bg-amber-400 text-[#050B14]" : ""}>
                       {Math.round(pt.distance_meters)} м
                     </Badge>
 
                     <div
                       className={`flex h-6 w-6 items-center justify-center rounded-full border ${
                         isSelected
-                          ? "border-rose-500 bg-rose-500 text-white"
-                          : "border-zinc-300 dark:border-zinc-700"
+                          ? "border-amber-400 bg-amber-400 text-[#050B14]"
+                          : "border-[#1E3A50]"
                       }`}
                     >
-                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                      {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
                     </div>
                   </div>
                 </div>
@@ -238,8 +237,8 @@ export default function OnboardingPage() {
 
           <Button
             size="lg"
-            variant="glow"
-            className="w-full gap-2 text-base rounded-2xl mt-4"
+            variant="reward"
+            className="w-full gap-2 text-base rounded-2xl mt-4 shadow-lg shadow-amber-500/20"
             disabled={!selectedPointId}
             isLoading={isSaving}
             onClick={handleSavePickupPoint}
