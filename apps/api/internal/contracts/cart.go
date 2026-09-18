@@ -1,12 +1,26 @@
-// Package contracts — cart.go — зарезервировано для интерфейсов,
-// экспортируемых модулем cart (см. EPIC-04).
-//
-// Пока модуль cart не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
 package contracts
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
+
+// CartItemSnapshot — элемент корзины.
+type CartItemSnapshot struct {
+	ProductID uuid.UUID `json:"product_id"`
+	Quantity  int       `json:"quantity"`
+}
+
+// CartSnapshot — снимок корзины для модуля заказов (EPIC-05).
+type CartSnapshot struct {
+	UserID        uuid.UUID          `json:"user_id"`
+	Items         []CartItemSnapshot `json:"items"`
+	PickupPointID *uuid.UUID         `json:"pickup_point_id,omitempty"`
+}
+
+// CartLookup — межмодульный интерфейс корзины.
+type CartLookup interface {
+	GetCart(ctx context.Context, userID uuid.UUID) (CartSnapshot, error)
+	ClearCart(ctx context.Context, userID uuid.UUID) error
+}

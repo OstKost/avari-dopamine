@@ -1,25 +1,10 @@
-# docs/api/openapi.yaml — базовый скелет OpenAPI 3.1 для Dopamine Market API.
-#
-# ДЛЯ БУДУЩИХ АГЕНТОВ: этот файл создаётся в рамках EPIC-00 (platform
-# bootstrap) как скелет — только info/servers/securitySchemes и общие
-# компоненты ошибок. Конкретные пути (paths) добавляются НЕ здесь одним
-# махом, а инкрементально, каждым Epic'ом при реализации соответствующего
-# модуля (EPIC-01 identity → /auth/*, EPIC-02 catalog → /catalog/*, и т.д.).
-# Правило: добавляя новый HTTP-хендлер в apps/api, ОБЯЗАТЕЛЬНО добавьте
-# соответствующий path сюда в том же PR/коммите — контракт не должен
-# расходиться с реализацией. См. AGENTS.md, раздел "Документация в ходе
-# разработки".
-#
-# Валидация: любой валидатор OpenAPI 3.1 (например `npx @redocly/cli lint
-# docs/api/openapi.yaml`) должен проходить без ошибок на каждом коммите.
-
 openapi: 3.1.0
 
 info:
   title: Dopamine Market API
   description: >
     Синтетический маркетплейс/сервис доставки — портфолио-проект.
-    Монетизация: фиксированная плата 10₽ за оформленный заказ.
+    Монетизация: фиксированная плата 10₽ за оформленный заказ (INV-01).
     Полностью синтетический каталог и курьеры, симуляция доставки —
     таймер-стейт-машина (см. docs/prd/PRD.md, ADR-005, ADR-009).
   version: "1.0.0"
@@ -30,7 +15,7 @@ servers:
   - url: http://localhost:8080
     description: Локальная разработка
   - url: https://api.dopamine-market.example.com
-    description: Продакшн (заглушка домена, заменить при реальном деплое)
+    description: Продакшн (заглушка домена)
 
 tags:
   - name: system
@@ -57,9 +42,7 @@ paths:
     get:
       tags: [system]
       summary: Проверка готовности сервиса и его зависимостей
-      description: >
-        Агрегирует health-check всех зарегистрированных зависимостей
-        (Postgres, Redis, ...). См. internal/platform/httpserver.
+      description: Агрегирует health-check всех зарегистрированных зависимостей.
       operationId: getHealthz
       security: []
       responses:
@@ -68,23 +51,449 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
         "503":
           description: Хотя бы одна зависимость недоступна
+
+  # ---------------- Identity & Auth (EPIC-01) ----------------
+  /auth/register:
+    post:
+      tags: [identity]
+      summary: Регистрация нового пользователя
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "strongPassword123"
+      responses:
+        "201":
+          description: Успешная регистрация, токены в httpOnly cookies и теле ответа
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  access_token:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Email уже занят
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 
-  # Пути ниже будут добавлены соответствующими Epic'ами:
-  #   /auth/register, /auth/login, /auth/refresh, /auth/logout      — EPIC-01
-  #   /catalog/categories, /catalog/products, /catalog/products/{id} — EPIC-02
-  #   /pickup-points, /pickup-points/{id}                            — EPIC-03
-  #   /cart, /cart/items, /cart/items/{id}                           — EPIC-04
-  #   /orders, /orders/{id}, /orders/{id}/status                     — EPIC-05
-  #   /payments/webhook/yookassa, /payments/{orderId}                — EPIC-06
-  #   /orders/{id}/tracking (SSE/WS)                                 — EPIC-07
-  #   /notifications                                                  — EPIC-08
+  /auth/login:
+    post:
+      tags: [identity]
+      summary: Аутентификация пользователя
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "strongPassword123"
+      responses:
+        "200":
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                  access_token:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /auth/refresh:
+    post:
+      tags: [identity]
+      summary: Ротация пары токенов
+      operationId: refreshTokens
+      security: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: Токены обновлены
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/logout:
+    post:
+      tags: [identity]
+      summary: Завершение сессии (инвалидация refresh family)
+      operationId: logout
+      security: []
+      responses:
+        "200":
+          description: Успешный выход
+
+  /auth/me:
+    get:
+      tags: [identity]
+      summary: Получение профиля текущего пользователя
+      operationId: getMe
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ---------------- Catalog (EPIC-02) ----------------
+  /catalog/categories:
+    get:
+      tags: [catalog]
+      summary: Список всех категорий
+      operationId: listCategories
+      security: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Category"
+
+  /catalog/products:
+    get:
+      tags: [catalog]
+      summary: Список товаров с фильтрацией и полнотекстовым поиском
+      operationId: listProducts
+      security: []
+      parameters:
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: q
+          in: query
+          description: Поисковый запрос (full-text search)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+
+  /catalog/products/{id}:
+    get:
+      tags: [catalog]
+      summary: Получение товара по ID
+      operationId: getProduct
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: "#/components/schemas/Product"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # ---------------- Pickup Points (EPIC-03) ----------------
+  /pickup/generate:
+    post:
+      tags: [pickup]
+      summary: Генерация синтетических ПВЗ вокруг координат
+      operationId: generatePickupPoints
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                latitude:
+                  type: number
+                  format: double
+                  example: 47.2357
+                longitude:
+                  type: number
+                  format: double
+                  example: 39.7015
+                city:
+                  type: string
+                  example: "Rostov-on-Don"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  points:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PickupPoint"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /pickup/points:
+    get:
+      tags: [pickup]
+      summary: Получение сохраненных ПВЗ пользователя
+      operationId: listPickupPoints
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  points:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PickupPoint"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ---------------- Cart (EPIC-04) ----------------
+  /cart:
+    get:
+      tags: [cart]
+      summary: Просмотр корзины с актуальными данными товаров и ПВЗ
+      operationId: getCart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    delete:
+      tags: [cart]
+      summary: Очистка корзины
+      operationId: clearCart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+  /cart/items:
+    post:
+      tags: [cart]
+      summary: Добавление товара в корзину
+      operationId: addItemToCart
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id]
+              properties:
+                product_id:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  default: 1
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /cart/items/{product_id}:
+    patch:
+      tags: [cart]
+      summary: Изменение количества конкретного товара
+      operationId: updateCartItemQuantity
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      tags: [cart]
+      summary: Удаление товара из корзины
+      operationId: removeCartItem
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/pickup-point:
+    put:
+      tags: [cart]
+      summary: Выбор активного пункта выдачи для корзины
+      operationId: setCartPickupPoint
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pickup_point_id]
+              properties:
+                pickup_point_id:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
 components:
   securitySchemes:
@@ -92,54 +501,150 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: >
-        Access-токен, выданный /auth/login (ADR-007, HS256). Передаётся
-        в заголовке Authorization: Bearer <token>.
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
 
   schemas:
-    HealthStatus:
+    User:
       type: object
-      required: [status, checks]
+      required: [id, email, created_at]
       properties:
-        status:
+        id:
           type: string
-          enum: [ok, degraded]
-        checks:
-          type: object
-          additionalProperties:
-            type: string
-            enum: [ok, error]
-          description: Карта "имя зависимости" → результат проверки.
+          format: uuid
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+
+    Category:
+      type: object
+      required: [id, name, slug, description]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+
+    Product:
+      type: object
+      required: [id, category_id, name, price_rub, image_seed, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price_rub:
+          type: string
+          example: "10.00"
+        image_seed:
+          type: string
+          example: "prod-1-1"
+        created_at:
+          type: string
+          format: date-time
+
+    PickupPoint:
+      type: object
+      required: [id, name, latitude, longitude, distance_meters, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        distance_meters:
+          type: number
+          format: double
+        created_at:
+          type: string
+          format: date-time
+
+    CartItem:
+      type: object
+      required: [product_id, category_id, name, price_rub, quantity, subtotal_rub]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+        name:
+          type: string
+        price_rub:
+          type: string
+          example: "10.00"
+        image_seed:
+          type: string
+        quantity:
+          type: integer
+        subtotal_rub:
+          type: string
+          example: "20.00"
+
+    Cart:
+      type: object
+      required: [items, total_quantity, total_price_rub, fixed_order_cost]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        pickup_point:
+          $ref: "#/components/schemas/PickupPoint"
+        total_quantity:
+          type: integer
+        total_price_rub:
+          type: string
+          example: "20.00"
+        fixed_order_cost:
+          type: string
+          example: "10.00"
 
     Error:
       type: object
-      required: [error]
+      required: [error, message]
       properties:
         error:
-          type: object
-          required: [code, message]
-          properties:
-            code:
-              type: string
-              description: Машиночитаемый код ошибки (SCREAMING_SNAKE_CASE).
-              examples: ["VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED"]
-            message:
-              type: string
-              description: Человекочитаемое описание, безопасное для показа пользователю.
-            details:
-              type: object
-              additionalProperties: true
-              description: Опциональные структурированные детали (например, поля с ошибками валидации).
+          type: string
+        message:
+          type: string
 
   responses:
-    ValidationError:
-      description: Ошибка валидации входных данных
+    BadRequest:
+      description: Некорректный запрос
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
     Unauthorized:
-      description: Отсутствует или недействителен access-токен
+      description: Не авторизован
       content:
         application/json:
           schema:
@@ -150,6 +655,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-
-security:
-  - bearerAuth: []
+    TooManyRequests:
+      description: Превышен лимит запросов
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

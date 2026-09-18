@@ -1,12 +1,27 @@
-// Package contracts — catalog.go — зарезервировано для интерфейсов,
-// экспортируемых модулем catalog (см. EPIC-02).
-//
-// Пока модуль catalog не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
 package contracts
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+)
+
+// ProductSnapshot — снимок товара для использования другими модулями (order, cart).
+// Денормализация цен и названий согласно ADR-011.
+type ProductSnapshot struct {
+	ID          uuid.UUID       `json:"id"`
+	CategoryID  uuid.UUID       `json:"category_id"`
+	CategoryName string         `json:"category_name"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	PriceRUB    decimal.Decimal `json:"price_rub"`
+	ImageSeed   string          `json:"image_seed"`
+}
+
+// ProductLookup — межмодульный интерфейс каталога товаров.
+type ProductLookup interface {
+	GetByID(ctx context.Context, id uuid.UUID) (ProductSnapshot, error)
+	GetByIDs(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]ProductSnapshot, error)
+	Exists(ctx context.Context, id uuid.UUID) (bool, error)
+}

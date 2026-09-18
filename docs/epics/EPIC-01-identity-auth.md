@@ -3,7 +3,7 @@ id: EPIC-01
 title: Identity & Auth
 module: [identity]
 priority: P0
-status: todo
+status: done
 depends_on: [EPIC-00]
 covers_requirements: [FR-AUTH-01, FR-AUTH-02, NFR-SEC-01, NFR-SEC-02]
 related_adrs: [ADR-007, ADR-004, ADR-011]
@@ -38,14 +38,14 @@ scope:
 
 ## Acceptance Criteria (из PRD)
 
-- [ ] Email уникален, case-insensitive (`FR-AUTH-01`)
-- [ ] Пароль >= 8 символов валидируется на сервере (`FR-AUTH-01`)
-- [ ] После регистрации выдаётся рабочая сессия без доп. шага верификации (`FR-AUTH-01`)
-- [ ] Access token TTL 15 минут, refresh TTL 30 дней (`FR-AUTH-02`)
-- [ ] Refresh token ротируется при каждом использовании (`FR-AUTH-02`)
-- [ ] Повторное использование инвалидированного refresh-токена инвалидирует всю family (`ADR-007`)
-- [ ] Logout инвалидирует refresh-сессию в Redis (`FR-AUTH-02`)
-- [ ] 6-я попытка логина за минуту с одного IP получает `429` (`NFR-SEC-02`)
+- [x] Email уникален, case-insensitive (`FR-AUTH-01`)
+- [x] Пароль >= 8 символов валидируется на сервере (`FR-AUTH-01`)
+- [x] После регистрации выдаётся рабочая сессия без доп. шага верификации (`FR-AUTH-01`)
+- [x] Access token TTL 15 минут, refresh TTL 30 дней (`FR-AUTH-02`)
+- [x] Refresh token ротируется при каждом использовании (`FR-AUTH-02`)
+- [x] Повторное использование инвалидированного refresh-токена инвалидирует всю family (`ADR-007`)
+- [x] Logout инвалидирует refresh-сессию в Redis (`FR-AUTH-02`)
+- [x] 6-я попытка логина за минуту с одного IP получает `429` (`NFR-SEC-02`)
 
 ## Definition of Done
 

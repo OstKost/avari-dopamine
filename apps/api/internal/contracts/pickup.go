@@ -1,12 +1,23 @@
-// Package contracts — pickup.go — зарезервировано для интерфейсов,
-// экспортируемых модулем pickup (см. EPIC-03).
-//
-// Пока модуль pickup не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
 package contracts
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
+
+// PickupPointSnapshot — снимок пункта выдачи для использования другими модулями (order, cart).
+type PickupPointSnapshot struct {
+	ID             uuid.UUID `json:"id"`
+	UserID         uuid.UUID `json:"user_id"`
+	Name           string    `json:"name"`
+	Latitude       float64   `json:"latitude"`
+	Longitude      float64   `json:"longitude"`
+	DistanceMeters float64   `json:"distance_meters"`
+}
+
+// PickupPointLookup — межмодульный интерфейс ПВЗ.
+type PickupPointLookup interface {
+	GetByID(ctx context.Context, id uuid.UUID) (PickupPointSnapshot, error)
+	Exists(ctx context.Context, id uuid.UUID) (bool, error)
+}

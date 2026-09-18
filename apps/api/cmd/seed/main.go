@@ -1,21 +1,14 @@
-// cmd/seed — CLI для детерминированной генерации синтетических данных
-// (ADR-012). Запускается один раз при первом поднятии окружения, НЕ на
-// каждом старте сервера (в отличие от миграций, которые могут применяться
-// многократно идемпотентно).
-//
-// Использование (после реализации подкоманд в EPIC-02/EPIC-03):
-//
-//	go run ./cmd/seed catalog   # генерирует 150-300 товаров, 8-12 категорий
-//	go run ./cmd/seed pickup    # НЕ применимо — ПВЗ генерируются per-request
-//	                              в runtime (EPIC-03), а не сидом при старте.
-//
-// На этапе EPIC-00 — только скелет с разбором подкоманды и понятной
-// ошибкой на нереализованные команды.
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+	"github.com/ostkost/dopamine-market/api/internal/platform/config"
+	"github.com/ostkost/dopamine-market/api/internal/platform/db"
 )
 
 func main() {
@@ -26,13 +19,35 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "loading config: %v\n", err)
+		os.Exit(1)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	dbPool, err := db.New(ctx, db.Config{
+		DSN:             cfg.DB.DSN,
+		MaxOpenConns:    5,
+		MaxIdleConns:    2,
+		ConnMaxLifetime: 5 * time.Minute,
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "connecting to db: %v\n", err)
+		os.Exit(1)
+	}
+	defer dbPool.Close()
+
 	switch os.Args[1] {
 	case "catalog":
-		// TODO(EPIC-02): реализовать генерацию каталога через
-		//   internal/modules/catalog/adapter/seed package, детерминированный
-		//   seed=42 (ADR-012), идемпотентная запись (ON CONFLICT DO NOTHING).
-		fmt.Fprintln(os.Stderr, "seed catalog: not implemented yet — see EPIC-02 (docs/epics/EPIC-02-catalog.md)")
-		os.Exit(1)
+		catalogMod := catalog.NewModule(dbPool.Raw())
+		if err := seedCatalog(ctx, catalogMod.Repository()); err != nil {
+			fmt.Fprintf(os.Stderr, "seeding catalog failed: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("catalog seed completed successfully")
 	default:
 		fmt.Fprintf(os.Stderr, "unknown seed command: %q\n", os.Args[1])
 		os.Exit(1)

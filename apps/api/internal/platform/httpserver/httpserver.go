@@ -110,14 +110,15 @@ func healthzHandler(checkers map[string]HealthChecker) http.HandlerFunc {
 		}
 
 		if len(failures) > 0 {
-			w.WriteHeader(http.StatusServiceUnavailable)
 			w.Header().Set("Content-Type", "application/json")
-			_, _ = w.Write([]byte(fmt.Sprintf(`{"status":"unhealthy","failures":%q}`, failures)))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = fmt.Fprintf(w, `{"status":"unhealthy","failures":%q}`, failures)
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status":"ok"}`))
+		_, _ = fmt.Fprint(w, `{"status":"ok"}`)
 	}
 }
 

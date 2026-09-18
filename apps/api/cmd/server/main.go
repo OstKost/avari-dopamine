@@ -1,12 +1,5 @@
 // cmd/server — HTTP API процесс. Единственная точка входа, где все модули
 // инстанцируются и связываются друг с другом (composition root, ADR-004).
-//
-// На этапе EPIC-00 модули (internal/modules/*) ещё не существуют — main
-// поднимает только платформенный фундамент (config, logger, db, redis,
-// kafka producer заготовка, HTTP-сервер с /healthz). Каждый следующий Epic
-// (EPIC-01..EPIC-08) добавляет сюда инстанцирование своего модуля и
-// монтирование его роутов через srv.Router().Mount(...) — см. TODO-маркеры
-// ниже с указанием, куда что добавлять.
 package main
 
 import (
@@ -17,11 +10,19 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
+	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+	"github.com/ostkost/dopamine-market/api/internal/modules/identity"
+	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
 	"github.com/ostkost/dopamine-market/api/internal/platform/httpserver"
 	"github.com/ostkost/dopamine-market/api/internal/platform/logger"
+	"github.com/ostkost/dopamine-market/api/internal/platform/random"
+	"github.com/ostkost/dopamine-market/api/internal/platform/ratelimit"
 	"github.com/ostkost/dopamine-market/api/internal/platform/redis"
 )
 
@@ -82,20 +83,27 @@ func run() error {
 	}()
 	log.Info("connected to redis")
 
-	// TODO(EPIC-01 identity): инстанцировать identity-модуль здесь,
-	//   инжектировать dbPool/redisClient/cfg.Auth, получить
-	//   contracts.IdentityLookup для последующих модулей и chi.Router
-	//   для монтирования на "/auth".
-	// TODO(EPIC-02 catalog): аналогично для catalog -> "/catalog".
-	// TODO(EPIC-03 pickup): аналогично для pickup -> "/pickup".
-	// TODO(EPIC-04 cart): аналогично для cart -> "/cart", зависит от
-	//   catalog.ProductLookup и pickup.PickupPointLookup контрактов.
-	// TODO(EPIC-05 order): аналогично для order -> "/orders", зависит от
-	//   cart.CartLookup и catalog.ProductLookup контрактов.
-	// TODO(EPIC-06 payment): PAYMENT_PROVIDER switch (mock|yookassa) здесь,
-	//   согласно ADR-006 — выбор адаптера конфигурацией, не кодом.
-	// TODO(EPIC-07 delivery), TODO(EPIC-08 notification): см. соответствующие
-	//   Epic-файлы docs/epics/ для деталей.
+	// 1. Модуль Identity & Auth (EPIC-01)
+	identityModule := identity.NewModule(dbPool.Raw(), redisClient.Raw(), identity.Config{
+		JWTSecret:       cfg.Auth.JWTSecret,
+		AccessTokenTTL:  cfg.Auth.AccessTokenTTL,
+		RefreshTokenTTL: cfg.Auth.RefreshTokenTTL,
+		IsSecureCookie:  cfg.Env == "production",
+	})
+
+	// 2. Модуль Catalog & Synthetic Data (EPIC-02)
+	catalogModule := catalog.NewModule(dbPool.Raw())
+
+	// 3. Модуль Pickup Points (EPIC-03)
+	rnd := random.New(time.Now().UnixNano())
+	pickupModule := pickup.NewModule(dbPool.Raw(), rnd)
+
+	// 4. Модуль Cart (EPIC-04)
+	cartModule := cart.NewModule(redisClient.Raw(), catalogModule, pickupModule, 7*24*time.Hour)
+
+	// TODO(EPIC-05 order): аналогично для order -> "/orders", зависит от cart.CartLookup и catalog.ProductLookup контрактов.
+	// TODO(EPIC-06 payment): PAYMENT_PROVIDER switch (mock|yookassa) здесь, согласно ADR-006.
+	// TODO(EPIC-07 delivery), TODO(EPIC-08 notification): см. соответствующие Epic-файлы docs/epics/.
 
 	srv := httpserver.New(httpserver.Options{
 		Port:            cfg.HTTP.Port,
@@ -105,6 +113,36 @@ func run() error {
 			"postgres": dbPool,
 			"redis":    redisClient,
 		},
+	})
+
+	// Rate limiter для Auth (NFR-SEC-02: 5 запросов/мин на IP)
+	authLimiter := ratelimit.New(redisClient.Raw(), 5, time.Minute)
+
+	// Монтирование роутов модулей
+	srv.Router().Group(func(r chi.Router) {
+		r.Use(authLimiter.Middleware("auth"))
+		r.Mount("/auth", identityModule.Routes())
+	})
+
+	// Эндпоинт текущего пользователя /auth/me под RequireAuth
+	srv.Router().Group(func(r chi.Router) {
+		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
+		r.Get("/auth/me", identityModule.Handler().HandleMe)
+	})
+
+	// Каталог — публичный доступ
+	srv.Router().Mount("/catalog", catalogModule.Routes())
+
+	// ПВЗ — требует авторизации
+	srv.Router().Group(func(r chi.Router) {
+		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
+		r.Mount("/pickup", pickupModule.Routes())
+	})
+
+	// Корзина — требует авторизации
+	srv.Router().Group(func(r chi.Router) {
+		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
+		r.Mount("/cart", cartModule.Routes())
 	})
 
 	log.Info("http server listening", slog.Int("port", cfg.HTTP.Port))

@@ -1,12 +1,23 @@
-// Package contracts — identity.go — зарезервировано для интерфейсов,
-// экспортируемых модулем identity (см. EPIC-01).
-//
-// Пока модуль identity не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
+// Package contracts содержит межмодульные интерфейсы и DTO (ADR-004).
+// Прямой импорт internal/modules/X из internal/modules/Y запрещён.
 package contracts
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// UserInfo — публичная информация о пользователе, доступная другим модулям.
+type UserInfo struct {
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// IdentityLookup — интерфейс для получения информации о пользователе.
+type IdentityLookup interface {
+	GetUserByID(ctx context.Context, id uuid.UUID) (UserInfo, error)
+	Exists(ctx context.Context, id uuid.UUID) (bool, error)
+}

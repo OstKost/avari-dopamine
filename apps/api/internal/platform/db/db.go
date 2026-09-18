@@ -70,6 +70,11 @@ func (p *Pool) Close() {
 	p.pool.Close()
 }
 
+// Raw возвращает нижележащий *pgxpool.Pool.
+func (p *Pool) Raw() *pgxpool.Pool {
+	return p.pool
+}
+
 // HealthCheck используется /healthz эндпоинтом (см. httpserver) для проверки
 // живости зависимости перед тем, как объявить сервис готовым принимать трафик.
 func (p *Pool) HealthCheck(ctx context.Context) error {

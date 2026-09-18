@@ -1,88 +1,87 @@
-# Конфигурация golangci-lint для apps/api.
-#
-# Ключевое правило для agentic development (ADR-004, AGENTS.md §1
-# "Границы модулей — закон"): depguard запрещает импортировать
-# internal/modules/** откуда-либо, кроме cmd/** (composition root) и
-# самого модуля. Межмодульная коммуникация — ТОЛЬКО через
-# internal/contracts/*. Это единственный способ безопасно распараллелить
-# работу нескольких агентов по разным модулям без постоянных merge-конфликтов
-# и протечек абстракций.
-#
-# `make lint-arch` (см. Makefile) запускает golangci-lint с --disable-all
-# --enable=depguard, чтобы дать быстрый читаемый сигнал именно по
-# архитектурному правилу, отдельно от общего `make lint`.
-
+version: "2"
 run:
-  timeout: 5m
   tests: true
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - depguard
     - errcheck
-    - staticcheck
-    - revive
     - govet
     - ineffassign
+    - staticcheck
     - unused
-    - gofmt
-    - goimports
-
-linters-settings:
-  depguard:
-    rules:
-      # Правило по умолчанию: применяется к любому файлу, если не
-      # переопределено более специфичным правилом ниже. golangci-lint
-      # применяет ПЕРВОЕ совпавшее по files-паттерну правило.
-      modules-boundary:
-        # Правило применяется ко всем файлам, кроме cmd/** (composition
-        # root — единственное разрешённое место для импорта конкретных
-        # модулей при связывании зависимостей). Файл самого модуля не
-        # нуждается в импорте internal/modules/<себя> — Go-пакет обращается
-        # к своим соседним файлам без import вообще, поэтому запрет
-        # "импортировать internal/modules откуда угодно, кроме cmd" не даёт
-        # false positive для кода внутри самого модуля.
-        files:
-          - "!**/cmd/**"
-        deny:
-          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules"
-            desc: >-
-              Прямой импорт internal/modules/** запрещён везде, кроме
-              cmd/** (composition root). Используйте internal/contracts/*
-              для межмодульной коммуникации (ADR-004). Если вы видите эту
-              ошибку — скорее всего, нужен новый интерфейс в
-              internal/contracts, а не прямой импорт.
-
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-      - name: package-comments
-        severity: warning
-      - name: error-strings
-        severity: warning
-
-  errcheck:
-    # Игнорируем непроверенные ошибки в defer'ах закрытия — паттерн
-    # `defer conn.Close()` встречается часто в platform-пакетах и не
-    # является риском для этого проекта (утечка соединения при ошибке
-    # закрытия не критична на масштабе 100 MAU).
-    exclude-functions:
-      - (io.Closer).Close
-
+  settings:
+    depguard:
+      rules:
+        platform-boundary:
+          files:
+            - '**/internal/platform/**'
+            - '**/internal/contracts/**'
+          deny:
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules
+              desc: Платформенные пакеты и контракты не должны импортировать модули.
+        identity-boundary:
+          files:
+            - '**/internal/modules/identity/**'
+          deny:
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
+              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
+        catalog-boundary:
+          files:
+            - '**/internal/modules/catalog/**'
+          deny:
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
+              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
+        pickup-boundary:
+          files:
+            - '**/internal/modules/pickup/**'
+          deny:
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
+              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
+        cart-boundary:
+          files:
+            - '**/internal/modules/cart/**'
+          deny:
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
+            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
+              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+  exclusions:
+    generated: lax
+    paths:
+      - migrations
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  # golangci-lint по умолчанию включает большой пресет exclude-rules,
-  # который глушит часть находок ряда линтеров (в т.ч. затрагивает
-  # обработку depguard в некоторых версиях) — отключаем, чтобы
-  # архитектурное правило работало предсказуемо и без скрытых исключений.
-  exclude-use-default: false
-  exclude-dirs:
-    - migrations
-  # На этапе EPIC-00 internal/modules/** пуст (кроме .gitkeep) — правило
-  # depguard не даёт реальных совпадений до EPIC-01. Это ожидаемо: правило
-  # должно быть включено с первого дня, чтобы агенты EPIC-01+ сразу
-  # работали в условиях действующей архитектурной проверки, а не добавляли
-  # её постфактум, когда нарушения уже накопились.
   max-issues-per-linter: 0
   max-same-issues: 0

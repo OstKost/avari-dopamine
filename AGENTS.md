@@ -102,7 +102,11 @@
 | Epic | Статус | Комментарий |
 |---|---|---|
 | EPIC-00 Platform Bootstrap | ✅ done | См. "EPIC-00: заметки о реализации" ниже — есть задокументированные отклонения от исходной спеки. |
-| EPIC-01..EPIC-14 | ⬜ not started | См. `docs/epics/EPIC-NN-*.md` |
+| EPIC-01 Identity & Auth | ✅ done | Регистрация, логин, refresh family ротация, reuse detection, rate limiter, RequireAuth middleware, unit тесты. |
+| EPIC-02 Catalog & Synthetic Data | ✅ done | Категории, товары с ценой 10₽ (INV-01), полнотекстовый поиск Postgres FTS, детерминированный сид 200 товаров. |
+| EPIC-03 Pickup Points | ✅ done | Сферическая геодезия DestinationPoint, генерация 5-8 точек в [100, 500]м (INV-03), fallback Ростов-на-Дону, property-based тесты. |
+| EPIC-04 Cart | ✅ done | Redis-backed корзина (TTL 7 дней), иммутабельный Cart VO, обогащение из ProductLookup и PickupLookup, контракт CartLookup. |
+| EPIC-05..EPIC-14 | ⬜ not started | См. `docs/epics/EPIC-NN-*.md` |
 
 ### EPIC-00: заметки о реализации
 
