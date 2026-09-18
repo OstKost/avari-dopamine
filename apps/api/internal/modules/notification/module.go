@@ -40,6 +40,10 @@ func (m *Module) Routes() chi.Router {
 	return m.handler.Routes()
 }
 
+func (m *Module) Handler() *httpapi.Handler {
+	return m.handler
+}
+
 func (m *Module) ConsumerHandler() *kafkaadapter.ConsumerHandler {
 	return m.consumerHandler
 }

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -156,10 +157,12 @@ func run() error {
 			"postgres": dbPool,
 			"redis":    redisClient,
 		},
+		Middlewares: []func(http.Handler) http.Handler{
+			tracing.TraceMiddleware,
+		},
 	})
 
-	// OpenTelemetry трейсинг middleware и Prometheus метрики (EPIC-12)
-	srv.Router().Use(tracing.TraceMiddleware)
+	// Prometheus метрики (EPIC-12)
 	srv.Router().Handle("/metrics", metrics.Handler())
 
 	// Rate limiter для Auth (NFR-SEC-02: 5 запросов/мин на IP)
@@ -195,8 +198,9 @@ func run() error {
 	// Заказы и SSE-стриминг уведомлений — требует авторизации
 	srv.Router().Group(func(r chi.Router) {
 		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
-		r.Mount("/orders", orderModule.Routes())
-		r.Mount("/orders", notificationModule.Routes())
+		orderRouter := orderModule.Routes()
+		orderRouter.Get("/{id}/events", notificationModule.Handler().HandleStreamOrderEvents)
+		r.Mount("/orders", orderRouter)
 	})
 
 	// Платежи и вебхуки (EPIC-06)

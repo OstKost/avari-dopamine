@@ -37,6 +37,8 @@ type Options struct {
 	// HealthCheckers — именованные зависимости, проверяемые /healthz.
 	// Имя используется только в диагностическом ответе при сбое.
 	HealthCheckers map[string]HealthChecker
+	// Middlewares — дополнительные глобальные middleware, выполняемые перед маршрутами.
+	Middlewares []func(http.Handler) http.Handler
 }
 
 // New создаёт Server со стандартными middleware:
@@ -57,6 +59,11 @@ func New(opts Options) *Server {
 	r.Use(recovererWithLogging(opts.Logger))
 	r.Use(corsMiddleware())
 	r.Use(middleware.Timeout(30 * time.Second))
+	for _, mw := range opts.Middlewares {
+		if mw != nil {
+			r.Use(mw)
+		}
+	}
 
 	r.Get("/healthz", healthzHandler(opts.HealthCheckers))
 
