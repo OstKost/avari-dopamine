@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
 import { formatPrice } from "@/lib/utils";
+import { getProductImageUrl } from "@/lib/utils/product-image";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const imageUrl = `https://picsum.photos/seed/${product.image_seed || id}/800/600`;
+  const imageUrl = getProductImageUrl(product.image_seed || id, product.name, product.category_name);
 
   return (
     <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-8 space-y-8">
@@ -59,6 +60,7 @@ export default async function ProductDetailPage({
             alt={product.name}
             fill
             priority
+            unoptimized
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />

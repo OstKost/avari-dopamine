@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiFetch } from "@/lib/api/client";
+import { getProductImageUrl } from "@/lib/utils/product-image";
 import { formatPrice } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -57,7 +58,7 @@ export function ProductCard({
     }
   };
 
-  const imageUrl = `https://picsum.photos/seed/${imageSeed || id}/400/300`;
+  const imageUrl = getProductImageUrl(imageSeed || id, name, categoryName);
 
   return (
     <Link href={`/product/${id}`} className="group block h-full">
@@ -68,6 +69,7 @@ export function ProductCard({
               src={imageUrl}
               alt={name}
               fill
+              unoptimized
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />

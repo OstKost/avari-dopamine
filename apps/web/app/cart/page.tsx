@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api/client";
 import { formatPrice } from "@/lib/utils";
+import { getProductImageUrl } from "@/lib/utils/product-image";
 
 interface CartItem {
   product_id: string;
@@ -205,7 +206,7 @@ export default function CartPage() {
         {/* Cart Items List */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => {
-            const imageUrl = `https://picsum.photos/seed/${item.image_seed || item.product_id}/200/200`;
+            const imageUrl = getProductImageUrl(item.image_seed || item.product_id, item.name, item.category_name);
             return (
               <Card key={item.product_id} className="border-zinc-200/80 dark:border-zinc-800 shadow-sm overflow-hidden">
                 <CardContent className="p-4 sm:p-6 flex items-center justify-between gap-4">
@@ -215,6 +216,7 @@ export default function CartPage() {
                         src={imageUrl}
                         alt={item.name}
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                     </div>
