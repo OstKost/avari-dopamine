@@ -1,12 +1,12 @@
-// Package contracts — notification.go — зарезервировано для интерфейсов,
-// экспортируемых модулем notification (см. EPIC-08).
-//
-// Пока модуль notification не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
 package contracts
+
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
+
+// OrderEventBroadcast — контракт для трансляции событий заказов в модуль уведомлений (ADR-004, ADR-009).
+type OrderEventBroadcast interface {
+	BroadcastOrderEvent(ctx context.Context, orderID uuid.UUID, eventType string, payload any) error
+}

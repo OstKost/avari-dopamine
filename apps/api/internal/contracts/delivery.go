@@ -1,12 +1,26 @@
-// Package contracts — delivery.go — зарезервировано для интерфейсов,
-// экспортируемых модулем delivery (см. EPIC-07).
-//
-// Пока модуль delivery не реализован, этот файл существует только чтобы
-// пакет contracts был валидным непустым Go-пакетом с первого дня —
-// это позволяет включить depguard-правило (ADR-004) в CI сразу в EPIC-00,
-// не дожидаясь реализации всех модулей.
-//
-// НЕ добавляйте сюда интерфейсы преждевременно: контракт описывается
-// вместе с реализацией модуля-владельца в его Epic, когда известен
-// реальный потребитель и требуемая форма API (AGENTS.md раздел 1).
 package contracts
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// DeliverySnapshot — снимок состояния доставки для межмодульного взаимодействия (notification, order).
+type DeliverySnapshot struct {
+	ID                    uuid.UUID `json:"id"`
+	OrderID               uuid.UUID `json:"order_id"`
+	Status                string    `json:"status"`
+	CourierName           string    `json:"courier_name"`
+	CourierRating         float64   `json:"courier_rating"`
+	StartedAt             time.Time `json:"started_at"`
+	EstimatedCompletionAt time.Time `json:"estimated_completion_at"`
+	CreatedAt             time.Time `json:"created_at"`
+	UpdatedAt             time.Time `json:"updated_at"`
+}
+
+// DeliveryLookup — интерфейс доступа к доставкам для других модулей (ADR-001, ADR-004).
+type DeliveryLookup interface {
+	GetDeliveryByOrderID(ctx context.Context, orderID uuid.UUID) (*DeliverySnapshot, error)
+}

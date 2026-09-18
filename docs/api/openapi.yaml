@@ -558,6 +558,42 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /orders/stats:
+    get:
+      tags: [order]
+      summary: Статистика пользователя и streak заказов (EPIC-14, FR-GAMIFY-01)
+      operationId: getUserStats
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: tz
+          in: query
+          description: Имя часового пояса клиента (IANA time zone, например Europe/Moscow)
+          schema:
+            type: string
+            example: "Europe/Moscow"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_orders:
+                    type: integer
+                  current_streak_days:
+                    type: integer
+                  longest_streak_days:
+                    type: integer
+                  total_saved_rub:
+                    type: string
+                  last_order_at:
+                    type: string
+                    format: date-time
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /orders/{id}:
     get:
       tags: [order]
@@ -600,12 +636,44 @@ paths:
             type: string
             format: uuid
       responses:
+  /orders/{id}/events:
+    get:
+      tags: [notification, order]
+      summary: SSE-стриминг обновлений статуса заказа в реальном времени (EPIC-08, ADR-009)
+      description: >
+        Возвращает Server-Sent Events поток. При установке соединения клиент получает
+        событие `snapshot` с актуальным состоянием заказа и курьера.
+        Последующие изменения статуса приходят как события `status_changed`.
+        Каждые 15 секунд отправляется комментарий `: keep-alive\n\n`.
+      operationId: streamOrderEvents
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
         "200":
-          description: Заказ отменен
+          description: SSE поток событий
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Запрещено (пользователь не является владельцем заказа)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /metrics:
     get:
       tags: [system]

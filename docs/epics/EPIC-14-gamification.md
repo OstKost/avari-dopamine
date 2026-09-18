@@ -3,7 +3,7 @@ id: EPIC-14
 title: Gamification Layer
 module: [order, web]
 priority: P2
-status: todo
+status: done
 depends_on: [EPIC-05, EPIC-11]
 covers_requirements: [FR-GAMIFY-01]
 related_adrs: []
@@ -12,7 +12,7 @@ scope:
     - apps/api/internal/modules/order/usecase/streak.go
     - apps/api/internal/modules/order/adapter/httpapi/stats.go
     - apps/web/components/features/gamification/**
-    - apps/web/app/(main)/profile/**
+    - apps/web/app/profile/**
 ---
 
 # EPIC-14: Gamification Layer
@@ -32,9 +32,9 @@ scope:
 
 ## Acceptance Criteria
 
-- [ ] Streak считается корректно по календарным дням, сбрасывается при пропуске дня (`FR-GAMIFY-01`)
-- [ ] Счётчик заказов отображается и обновляется после каждого нового заказа
-- [ ] Анимации не блокируют доступность (`prefers-reduced-motion` соблюдается)
+- [x] Streak считается корректно по календарным дням, сбрасывается при пропуске дня (`FR-GAMIFY-01`)
+- [x] Счётчик заказов отображается и обновляется после каждого нового заказа
+- [x] Анимации не блокируют доступность (`prefers-reduced-motion` соблюдается)
 
 ## Definition of Done
 

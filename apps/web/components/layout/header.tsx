@@ -30,6 +30,10 @@ export function Header() {
             <Package className="h-4 w-4" />
             Заказы
           </Link>
+          <Link href="/profile" className="hover:text-rose-600 transition-colors flex items-center gap-1.5">
+            <User className="h-4 w-4" />
+            Профиль
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -43,10 +47,10 @@ export function Header() {
             </Button>
           </Link>
 
-          <Link href="/login">
+          <Link href="/profile">
             <Button variant="ghost" size="sm" className="gap-2">
               <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Войти</span>
+              <span className="hidden sm:inline">Профиль</span>
             </Button>
           </Link>
         </div>

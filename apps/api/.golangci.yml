@@ -1,8 +1,17 @@
-version: "2"
+# Конфигурация golangci-lint v1.62.2 для apps/api.
+#
+# Ключевое правило для agentic development (ADR-004, AGENTS.md §1
+# "Границы модулей — закон"): depguard запрещает межмодульные импорты.
+# Межмодульная коммуникация — ТОЛЬКО через internal/contracts/*.
+#
+# `make lint-arch` запускает golangci-lint и фильтрует вывод по depguard.
+
 run:
+  timeout: 5m
   tests: true
+
 linters:
-  default: none
+  disable-all: true
   enable:
     - depguard
     - errcheck
@@ -10,78 +19,145 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-  settings:
-    depguard:
-      rules:
-        platform-boundary:
-          files:
-            - '**/internal/platform/**'
-            - '**/internal/contracts/**'
-          deny:
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules
-              desc: Платформенные пакеты и контракты не должны импортировать модули.
-        identity-boundary:
-          files:
-            - '**/internal/modules/identity/**'
-          deny:
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
-              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
-        catalog-boundary:
-          files:
-            - '**/internal/modules/catalog/**'
-          deny:
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
-              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
-        pickup-boundary:
-          files:
-            - '**/internal/modules/pickup/**'
-          deny:
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/cart
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
-              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
-        cart-boundary:
-          files:
-            - '**/internal/modules/cart/**'
-          deny:
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/identity
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/catalog
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/pickup
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/order
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/payment
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/delivery
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/notification
-            - pkg: github.com/ostkost/dopamine-market/api/internal/modules/gamification
-              desc: Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts.
-    errcheck:
-      exclude-functions:
-        - (io.Closer).Close
-  exclusions:
-    generated: lax
-    paths:
-      - migrations
-      - third_party$
-      - builtin$
-      - examples$
+
+linters-settings:
+  depguard:
+    rules:
+      platform-boundary:
+        files:
+          - "**/internal/platform/**"
+          - "**/internal/contracts/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules"
+            desc: "Платформенные пакеты и контракты не должны импортировать модули."
+      identity-boundary:
+        files:
+          - "**/internal/modules/identity/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      catalog-boundary:
+        files:
+          - "**/internal/modules/catalog/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      pickup-boundary:
+        files:
+          - "**/internal/modules/pickup/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      cart-boundary:
+        files:
+          - "**/internal/modules/cart/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      order-boundary:
+        files:
+          - "**/internal/modules/order/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      payment-boundary:
+        files:
+          - "**/internal/modules/payment/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      delivery-boundary:
+        files:
+          - "**/internal/modules/delivery/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      notification-boundary:
+        files:
+          - "**/internal/modules/notification/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/gamification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+      gamification-boundary:
+        files:
+          - "**/internal/modules/gamification/**"
+        deny:
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/identity"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/pickup"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/cart"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/order"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/payment"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+          - pkg: "github.com/ostkost/dopamine-market/api/internal/modules/notification"
+            desc: "Межмодульный импорт запрещен (ADR-004). Используйте internal/contracts."
+
+  errcheck:
+    exclude-functions:
+      - (io.Closer).Close
+
 issues:
+  exclude-dirs:
+    - migrations
+    - third_party$
+    - builtin$
+    - examples$
+  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

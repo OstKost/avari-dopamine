@@ -15,15 +15,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
 	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+	"github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+	deliveryuc "github.com/ostkost/dopamine-market/api/internal/modules/delivery/usecase"
 	"github.com/ostkost/dopamine-market/api/internal/modules/identity"
+	"github.com/ostkost/dopamine-market/api/internal/modules/notification"
 	"github.com/ostkost/dopamine-market/api/internal/modules/order"
 	"github.com/ostkost/dopamine-market/api/internal/modules/payment"
 	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
 	"github.com/ostkost/dopamine-market/api/internal/platform/httpserver"
+	"github.com/ostkost/dopamine-market/api/internal/platform/kafka"
 	"github.com/ostkost/dopamine-market/api/internal/platform/logger"
 	"github.com/ostkost/dopamine-market/api/internal/platform/metrics"
+	"github.com/ostkost/dopamine-market/api/internal/platform/pubsub"
 	"github.com/ostkost/dopamine-market/api/internal/platform/random"
 	"github.com/ostkost/dopamine-market/api/internal/platform/ratelimit"
 	"github.com/ostkost/dopamine-market/api/internal/platform/redis"
@@ -114,7 +119,34 @@ func run() error {
 		return fmt.Errorf("initializing payment module: %w", err)
 	}
 
-	// TODO(EPIC-07 delivery), TODO(EPIC-08 notification): см. соответствующие Epic-файлы docs/epics/.
+	// 7. Модуль Delivery Simulation (EPIC-07)
+	deliveryModule := delivery.NewModule(dbPool, rnd, deliveryuc.DefaultConfig())
+
+	// 8. Модуль Realtime Notifications / SSE (EPIC-08)
+	notificationHub := pubsub.NewHub()
+	notificationModule := notification.NewModule(orderModule, deliveryModule, notificationHub)
+
+	// Запуск Kafka consumer для notification-сервиса (трансляция событий в SSE Hub)
+	if len(cfg.Kafka.Brokers) > 0 {
+		notifConsumer := kafka.NewConsumer(
+			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-api-notification-consumer"},
+			"dopamine.events",
+			"notification-service-group",
+		)
+		defer func() {
+			if closeErr := notifConsumer.Close(); closeErr != nil {
+				log.Error("closing notification consumer", slog.String("error", closeErr.Error()))
+			}
+		}()
+
+		go func() {
+			log.Info("starting notification kafka consumer in api server")
+			handler := notificationModule.ConsumerHandler().HandleMessage
+			if err := notifConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
+				log.Error("notification consumer error", slog.String("error", err.Error()))
+			}
+		}()
+	}
 
 	srv := httpserver.New(httpserver.Options{
 		Port:            cfg.HTTP.Port,
@@ -160,10 +192,11 @@ func run() error {
 		r.Mount("/cart", cartModule.Routes())
 	})
 
-	// Заказы — требует авторизации
+	// Заказы и SSE-стриминг уведомлений — требует авторизации
 	srv.Router().Group(func(r chi.Router) {
 		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
 		r.Mount("/orders", orderModule.Routes())
+		r.Mount("/orders", notificationModule.Routes())
 	})
 
 	// Платежи и вебхуки (EPIC-06)

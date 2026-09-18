@@ -25,6 +25,8 @@ import (
 
 	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
 	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+	"github.com/ostkost/dopamine-market/api/internal/modules/delivery"
+	deliveryuc "github.com/ostkost/dopamine-market/api/internal/modules/delivery/usecase"
 	"github.com/ostkost/dopamine-market/api/internal/modules/order"
 	"github.com/ostkost/dopamine-market/api/internal/modules/payment"
 	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
@@ -35,6 +37,7 @@ import (
 	"github.com/ostkost/dopamine-market/api/internal/platform/outbox"
 	"github.com/ostkost/dopamine-market/api/internal/platform/random"
 	"github.com/ostkost/dopamine-market/api/internal/platform/redis"
+	"github.com/ostkost/dopamine-market/api/internal/platform/scheduler"
 )
 
 func main() {
@@ -102,6 +105,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("initializing payment module in worker: %w", err)
 	}
+	deliveryModule := delivery.NewModule(dbPool, rnd, deliveryuc.DefaultConfig())
 
 	// Outbox Relay (ADR-003): единый релей для опроса outbox_events всех модулей
 	kafkaProducer := kafka.NewProducer(kafka.Config{
@@ -114,13 +118,13 @@ func run() error {
 		}
 	}()
 
-	outboxRelay := outbox.NewRelay(dbPool, kafkaProducer, []string{"order", "payment"}, log, 500*time.Millisecond)
+	outboxRelay := outbox.NewRelay(dbPool, kafkaProducer, []string{"order", "payment", "delivery"}, log, 500*time.Millisecond)
 
 	var g errgroup.Group
 
 	// 1. Запуск outbox relay
 	g.Go(func() error {
-		log.Info("starting outbox relay", slog.Any("schemas", []string{"order", "payment"}))
+		log.Info("starting outbox relay", slog.Any("schemas", []string{"order", "payment", "delivery"}))
 		if err := outboxRelay.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			log.Error("outbox relay failed", slog.String("error", err.Error()))
 			return err
@@ -128,8 +132,20 @@ func run() error {
 		return nil
 	})
 
-	// 2. Запуск Kafka consumer для order-service (ADR-003: consumer group per module)
+	// 2. Запуск таймер-стейт-машины доставки (ADR-005)
+	deliveryScheduler := scheduler.New(dbPool, log, 1*time.Second)
+	g.Go(func() error {
+		log.Info("starting delivery scheduler")
+		if err := deliveryScheduler.Run(ctx, "delivery", deliveryModule.SchedulerHandler()); err != nil && !errors.Is(err, context.Canceled) {
+			log.Error("delivery scheduler failed", slog.String("error", err.Error()))
+			return err
+		}
+		return nil
+	})
+
+	// 3. Запуск Kafka consumer'ов
 	if len(cfg.Kafka.Brokers) > 0 {
+		// Consumer для order-service
 		orderConsumer := kafka.NewConsumer(
 			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-order-consumer"},
 			"dopamine.events",
@@ -151,7 +167,7 @@ func run() error {
 			return nil
 		})
 
-		// 3. Запуск Kafka consumer для payment-service
+		// Consumer для payment-service
 		paymentConsumer := kafka.NewConsumer(
 			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-payment-consumer"},
 			"dopamine.events",
@@ -168,6 +184,28 @@ func run() error {
 			handler := paymentModule.ConsumerHandler().HandleMessage
 			if err := paymentConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
 				log.Error("payment consumer failed", slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		})
+
+		// Consumer для delivery-service (EPIC-07)
+		deliveryConsumer := kafka.NewConsumer(
+			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-delivery-consumer"},
+			"dopamine.events",
+			"delivery-service-group",
+		)
+		defer func() {
+			if closeErr := deliveryConsumer.Close(); closeErr != nil {
+				log.Error("closing delivery consumer", slog.String("error", closeErr.Error()))
+			}
+		}()
+
+		g.Go(func() error {
+			log.Info("starting delivery kafka consumer")
+			handler := deliveryModule.ConsumerHandler().HandleMessage
+			if err := deliveryConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
+				log.Error("delivery consumer failed", slog.String("error", err.Error()))
 				return err
 			}
 			return nil

@@ -27,6 +27,7 @@ func (h *Handler) Routes() chi.Router {
 
 	r.Post("/", h.handleCreateOrder)
 	r.Get("/", h.handleListOrders)
+	r.Get("/stats", h.handleGetUserStats)
 	r.Get("/{id}", h.handleGetOrder)
 	r.Post("/{id}/cancel", h.handleCancelOrder)
 

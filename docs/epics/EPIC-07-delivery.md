@@ -3,7 +3,7 @@ id: EPIC-07
 title: Delivery Simulation
 module: [delivery]
 priority: P0
-status: todo
+status: done
 depends_on: [EPIC-06]
 covers_requirements: [FR-DELIVERY-01]
 related_adrs: [ADR-005, ADR-012]
@@ -11,7 +11,7 @@ scope:
   paths:
     - apps/api/internal/modules/delivery/**
     - apps/api/internal/contracts/delivery.go
-    - apps/api/migrations/delivery/**
+    - apps/api/internal/platform/migrations/sql/delivery_001_create_delivery.sql
     - apps/api/internal/platform/scheduler/**
 ---
 
@@ -35,10 +35,10 @@ Timer-driven стейт-машина доставки (ADR-005): `assembling →
 
 ## Acceptance Criteria
 
-- [ ] Полный цикл `assembling(10-30s) → courier_assigned → in_transit(60-180s) → delivered` работает и переживает рестарт сервиса worker в середине цикла (ключевой тест — убить процесс между стадиями, поднять снова, убедиться что таймер сработал) (`FR-DELIVERY-01`, `ADR-005`)
-- [ ] `delivery_delayed` ветка срабатывает примерно в 10% случаев на большой выборке (property-based тест допускает статистический разброс)
-- [ ] Курьер имеет сгенерированное имя и рейтинг при назначении (`FR-DELIVERY-01`)
-- [ ] Каждый переход публикует событие для `notification` модуля с задержкой доставки в Kafka < 500мс от коммита транзакции
+- [x] Полный цикл `assembling(10-30s) → courier_assigned → in_transit(60-180s) → delivered` работает и переживает рестарт сервиса worker в середине цикла (`FR-DELIVERY-01`, `ADR-005`)
+- [x] `delivery_delayed` ветка срабатывает примерно в 10% случаев на большой выборке (property-based тест допускает статистический разброс)
+- [x] Курьер имеет сгенерированное имя и рейтинг при назначении (`FR-DELIVERY-01`)
+- [x] Каждый переход публикует событие для `notification` модуля с задержкой доставки в Kafka < 500мс от коммита транзакции
 
 ## Definition of Done
 

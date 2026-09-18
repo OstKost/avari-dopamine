@@ -108,11 +108,14 @@
 | EPIC-04 Cart | ✅ done | Redis-backed корзина (TTL 7 дней), иммутабельный Cart VO, обогащение из ProductLookup и PickupLookup, контракт CartLookup. |
 | EPIC-05 Order Lifecycle | ✅ done | Создание заказа, стейт-машина переходов, transactional outbox relay, processed_events идемпотентность, INV-01/INV-02. |
 | EPIC-06 Payment Abstraction | ✅ done | MockProvider (95% success), YooKassaProvider (HMAC вебхуки), outbox events payment.succeeded/failed, INV-01. |
+| EPIC-07 Delivery Simulation | ✅ done | Таймер-стейт-машина (ADR-005), scheduler SKIP LOCKED, outbox delivery.*.v1, INV-01/INV-03. |
+| EPIC-08 Realtime Notifications | ✅ done | SSE-стриминг /orders/{id}/events, in-process pub/sub, initial snapshot, keep-alive, isolation. |
 | EPIC-09 Frontend Shell | ✅ done | Next.js 15, App Router, Tailwind CSS дизайн-система, генерация типов OpenAPI, Auth layout/middleware, SSR skeleton loaders. |
 | EPIC-10 Frontend Catalog & Cart | ✅ done | Онбординг ПВЗ (геолокация), SSR каталог с debounced поиском, карточки товаров, корзина с 10₽ INV-01 баннером. |
+| EPIC-11 Frontend Tracking & Checkout | ✅ done | Оформление заказа, SSR + useOrderStatus (SSE + polling fallback), DeliveryProgress, курьер, delayed banner, confetti. |
 | EPIC-12 Observability | ✅ done | Prometheus /metrics эндпоинт, OpenTelemetry трейсинг (HTTP middleware + Kafka traceparent), GELF UDP логирование. |
 | EPIC-13 CI/CD & Quality Gates | ✅ done | GitHub Actions workflows (Backend CI, Frontend CI, Arch Lint Gate, Dependabot, Smoke Load Test). |
-| EPIC-07..EPIC-14 | ⬜ not started | См. `docs/epics/EPIC-NN-*.md` |
+| EPIC-14 Gamification Layer | ✅ done | Подсчет streak по дням/TZ, статистика заказов, бейджи, страница профиля, celebration UX. |
 
 ### EPIC-00: заметки о реализации
 

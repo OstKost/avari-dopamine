@@ -3,14 +3,14 @@ id: EPIC-11
 title: Frontend Checkout & Order Tracking
 module: [web]
 priority: P0
-status: todo
+status: done
 depends_on: [EPIC-09, EPIC-05, EPIC-08]
 covers_requirements: [FR-ORDER-01, FR-ORDER-02, FR-NOTIF-01, FR-HISTORY-01]
 related_adrs: [ADR-009]
 scope:
   paths:
-    - apps/web/app/(main)/checkout/**
-    - apps/web/app/(main)/orders/**
+    - apps/web/app/cart/**
+    - apps/web/app/orders/**
     - apps/web/components/features/order/**
     - apps/web/hooks/useOrderStatus.ts
 ---
@@ -34,11 +34,11 @@ scope:
 
 ## Acceptance Criteria
 
-- [ ] Оформление заказа переводит на страницу трекинга без ручного обновления (`FR-ORDER-01`)
-- [ ] Статус на странице заказа обновляется в реальном времени без перезагрузки страницы (`FR-NOTIF-01`)
-- [ ] При обновлении страницы (F5) статус восстанавливается корректно (не сбрасывается на "assembling") (`FR-NOTIF-01`)
-- [ ] История заказов пагинируется, "Повторить" наполняет корзину прежним составом (`FR-HISTORY-01`)
-- [ ] Анимации уважают `prefers-reduced-motion`
+- [x] Оформление заказа переводит на страницу трекинга без ручного обновления (`FR-ORDER-01`)
+- [x] Статус на странице заказа обновляется в реальном времени без перезагрузки страницы (`FR-NOTIF-01`)
+- [x] При обновлении страницы (F5) статус восстанавливается корректно (не сбрасывается на "assembling") (`FR-NOTIF-01`)
+- [x] История заказов пагинируется, "Повторить" наполняет корзину прежним составом (`FR-HISTORY-01`)
+- [x] Анимации уважают `prefers-reduced-motion`
 
 ## Definition of Done
 
