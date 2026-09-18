@@ -1,6 +1,6 @@
 module github.com/ostkost/dopamine-market/api
 
-go 1.23.4
+go 1.26.0
 
 require (
 	github.com/go-chi/chi/v5 v5.1.0
@@ -14,8 +14,8 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	go.opentelemetry.io/otel v1.32.0
 	go.opentelemetry.io/otel/trace v1.32.0
-	golang.org/x/crypto v0.37.0
-	golang.org/x/sync v0.13.0
+	golang.org/x/crypto v0.57.0
+	golang.org/x/sync v0.23.0
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	go.opentelemetry.io/otel/metric v1.32.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
