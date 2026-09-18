@@ -606,12 +606,86 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Order"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+  /metrics:
+    get:
+      tags: [system]
+      summary: Метрики Prometheus (EPIC-12)
+      operationId: getMetrics
+      security: []
+      responses:
+        "200":
+          description: Метрики Prometheus в текстовом формате
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # ---------------- Payments (EPIC-06) ----------------
+  /payments/{order_id}:
+    get:
+      tags: [payment]
+      summary: Получение статуса платежа по ID заказа
+      operationId: getPaymentByOrderId
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /payments/webhook/mock:
+    post:
+      tags: [payment]
+      summary: Вебхук тестового Mock-провайдера
+      operationId: handleMockWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider_payment_id, order_id, status]
+              properties:
+                provider_payment_id:
+                  type: string
+                order_id:
+                  type: string
+                  format: uuid
+                status:
+                  type: string
+                  enum: [succeeded, failed]
+                failure_reason:
+                  type: string
+      responses:
+        "200":
+          description: Вебхук успешно обработан
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /payments/webhook/yookassa:
+    post:
+      tags: [payment]
+      summary: Вебхук YooKassa API (ADR-006)
+      operationId: handleYooKassaWebhook
+      security: []
+      responses:
+        "200":
+          description: Вебхук успешно обработан
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
 components:
   securitySchemes:
@@ -790,6 +864,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OrderItem"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Payment:
+      type: object
+      required: [id, order_id, provider, provider_payment_id, amount_rub, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        provider_payment_id:
+          type: string
+        amount_rub:
+          type: string
+          example: "10.00"
+        status:
+          type: string
+          enum: [pending, succeeded, failed]
+          example: "pending"
+        confirmation_url:
+          type: string
+        failure_reason:
+          type: string
         created_at:
           type: string
           format: date-time

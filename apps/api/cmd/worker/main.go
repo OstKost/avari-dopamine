@@ -26,6 +26,7 @@ import (
 	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
 	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
 	"github.com/ostkost/dopamine-market/api/internal/modules/order"
+	"github.com/ostkost/dopamine-market/api/internal/modules/payment"
 	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
@@ -97,8 +98,12 @@ func run() error {
 	pickupModule := pickup.NewModule(dbPool.Raw(), rnd)
 	cartModule := cart.NewModule(redisClient.Raw(), catalogModule, pickupModule, 7*24*time.Hour)
 	orderModule := order.NewModule(dbPool, cartModule, catalogModule, pickupModule)
+	paymentModule, err := payment.NewModule(dbPool, cfg.Payment, rnd)
+	if err != nil {
+		return fmt.Errorf("initializing payment module in worker: %w", err)
+	}
 
-	// Outbox Relay (ADR-003): единый релей для опроса outbox_events
+	// Outbox Relay (ADR-003): единый релей для опроса outbox_events всех модулей
 	kafkaProducer := kafka.NewProducer(kafka.Config{
 		Brokers:  cfg.Kafka.Brokers,
 		ClientID: "dopamine-worker-outbox",
@@ -109,13 +114,13 @@ func run() error {
 		}
 	}()
 
-	outboxRelay := outbox.NewRelay(dbPool, kafkaProducer, []string{"order"}, log, 500*time.Millisecond)
+	outboxRelay := outbox.NewRelay(dbPool, kafkaProducer, []string{"order", "payment"}, log, 500*time.Millisecond)
 
 	var g errgroup.Group
 
 	// 1. Запуск outbox relay
 	g.Go(func() error {
-		log.Info("starting outbox relay", slog.Any("schemas", []string{"order"}))
+		log.Info("starting outbox relay", slog.Any("schemas", []string{"order", "payment"}))
 		if err := outboxRelay.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			log.Error("outbox relay failed", slog.String("error", err.Error()))
 			return err
@@ -141,6 +146,28 @@ func run() error {
 			handler := orderModule.ConsumerHandler().HandleMessage
 			if err := orderConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
 				log.Error("order consumer failed", slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		})
+
+		// 3. Запуск Kafka consumer для payment-service
+		paymentConsumer := kafka.NewConsumer(
+			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-payment-consumer"},
+			"dopamine.events",
+			"payment-service-group",
+		)
+		defer func() {
+			if closeErr := paymentConsumer.Close(); closeErr != nil {
+				log.Error("closing payment consumer", slog.String("error", closeErr.Error()))
+			}
+		}()
+
+		g.Go(func() error {
+			log.Info("starting payment kafka consumer")
+			handler := paymentModule.ConsumerHandler().HandleMessage
+			if err := paymentConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
+				log.Error("payment consumer failed", slog.String("error", err.Error()))
 				return err
 			}
 			return nil

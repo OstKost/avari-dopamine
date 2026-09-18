@@ -3,7 +3,7 @@ id: EPIC-12
 title: Observability
 module: [platform]
 priority: P1
-status: todo
+status: done
 depends_on: [EPIC-00]
 covers_requirements: [NFR-OBS-01, NFR-OBS-02]
 related_adrs: [ADR-010]
@@ -32,10 +32,10 @@ scope:
 
 ## Acceptance Criteria
 
-- [ ] Логи всех сервисов видны в Graylog UI с полями `module`, `trace_id`, `order_id` где применимо (`NFR-OBS-01`)
-- [ ] Один `trace_id` позволяет увидеть полный путь заказа через order → payment → delivery → notification в трейсинг-инструменте (`NFR-OBS-02`)
-- [ ] `/metrics` эндпоинт отдаёт бизнес-метрики, видимые Prometheus (или `curl` для проверки формата)
-- [ ] `docker-compose up` включает предустановленный GELF input в Graylog "из коробки" (не требует ручной настройки после первого старта)
+- [x] Логи всех сервисов видны в Graylog UI с полями `module`, `trace_id`, `order_id` где применимо (`NFR-OBS-01`)
+- [x] Один `trace_id` позволяет увидеть полный путь заказа через order → payment → delivery → notification в трейсинг-инструменте (`NFR-OBS-02`)
+- [x] `/metrics` эндпоинт отдаёт бизнес-метрики, видимые Prometheus (или `curl` для проверки формата)
+- [x] `docker-compose up` включает предустановленный GELF input в Graylog "из коробки" (не требует ручной настройки после первого старта)
 
 ## Definition of Done
 

@@ -3,7 +3,7 @@ id: EPIC-06
 title: Payment Abstraction
 module: [payment]
 priority: P0
-status: todo
+status: done
 depends_on: [EPIC-05]
 covers_requirements: [FR-PAY-01, INV-01]
 related_adrs: [ADR-006, ADR-003]
@@ -37,12 +37,12 @@ scope:
 
 ## Acceptance Criteria
 
-- [ ] Сумма платежа всегда 10.00 RUB (`INV-01`)
-- [ ] MockProvider эмулирует webhook с задержкой 1-3с, success rate ~95% (`FR-PAY-01`)
-- [ ] YooKassaProvider инициирует реальный платёж в тестовом магазине и корректно проверяет подпись вебхука (`FR-PAY-01`)
-- [ ] Оба адаптера проходят один и тот же contract test suite (`ADR-006`)
-- [ ] Повторный вебхук с тем же `provider_payment_id` не публикует повторное событие (`NFR-REL-02`)
-- [ ] Переключение `PAYMENT_PROVIDER` меняет поведение без изменения кода `order`/`payment` domain/usecase слоёв
+- [x] Сумма платежа всегда 10.00 RUB (`INV-01`)
+- [x] MockProvider эмулирует webhook с задержкой 1-3с, success rate ~95% (`FR-PAY-01`)
+- [x] YooKassaProvider инициирует реальный платёж в тестовом магазине и корректно проверяет подпись вебхука (`FR-PAY-01`)
+- [x] Оба адаптера проходят один и тот же contract test suite (`ADR-006`)
+- [x] Повторный вебхук с тем же `provider_payment_id` не публикует повторное событие (`NFR-REL-02`)
+- [x] Переключение `PAYMENT_PROVIDER` меняет поведение без изменения кода `order`/`payment` domain/usecase слоёв
 
 ## Definition of Done
 

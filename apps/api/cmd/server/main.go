@@ -17,14 +17,17 @@ import (
 	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
 	"github.com/ostkost/dopamine-market/api/internal/modules/identity"
 	"github.com/ostkost/dopamine-market/api/internal/modules/order"
+	"github.com/ostkost/dopamine-market/api/internal/modules/payment"
 	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
 	"github.com/ostkost/dopamine-market/api/internal/platform/httpserver"
 	"github.com/ostkost/dopamine-market/api/internal/platform/logger"
+	"github.com/ostkost/dopamine-market/api/internal/platform/metrics"
 	"github.com/ostkost/dopamine-market/api/internal/platform/random"
 	"github.com/ostkost/dopamine-market/api/internal/platform/ratelimit"
 	"github.com/ostkost/dopamine-market/api/internal/platform/redis"
+	"github.com/ostkost/dopamine-market/api/internal/platform/tracing"
 )
 
 func main() {
@@ -105,7 +108,12 @@ func run() error {
 	// 5. Модуль Order Lifecycle (EPIC-05)
 	orderModule := order.NewModule(dbPool, cartModule, catalogModule, pickupModule)
 
-	// TODO(EPIC-06 payment): PAYMENT_PROVIDER switch (mock|yookassa) здесь, согласно ADR-006.
+	// 6. Модуль Payment Abstraction (EPIC-06)
+	paymentModule, err := payment.NewModule(dbPool, cfg.Payment, rnd)
+	if err != nil {
+		return fmt.Errorf("initializing payment module: %w", err)
+	}
+
 	// TODO(EPIC-07 delivery), TODO(EPIC-08 notification): см. соответствующие Epic-файлы docs/epics/.
 
 	srv := httpserver.New(httpserver.Options{
@@ -117,6 +125,10 @@ func run() error {
 			"redis":    redisClient,
 		},
 	})
+
+	// OpenTelemetry трейсинг middleware и Prometheus метрики (EPIC-12)
+	srv.Router().Use(tracing.TraceMiddleware)
+	srv.Router().Handle("/metrics", metrics.Handler())
 
 	// Rate limiter для Auth (NFR-SEC-02: 5 запросов/мин на IP)
 	authLimiter := ratelimit.New(redisClient.Raw(), 5, time.Minute)
@@ -153,6 +165,9 @@ func run() error {
 		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
 		r.Mount("/orders", orderModule.Routes())
 	})
+
+	// Платежи и вебхуки (EPIC-06)
+	srv.Router().Mount("/payments", paymentModule.Routes())
 
 	log.Info("http server listening", slog.Int("port", cfg.HTTP.Port))
 
