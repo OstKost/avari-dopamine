@@ -1,0 +1,155 @@
+# docs/api/openapi.yaml — базовый скелет OpenAPI 3.1 для Dopamine Market API.
+#
+# ДЛЯ БУДУЩИХ АГЕНТОВ: этот файл создаётся в рамках EPIC-00 (platform
+# bootstrap) как скелет — только info/servers/securitySchemes и общие
+# компоненты ошибок. Конкретные пути (paths) добавляются НЕ здесь одним
+# махом, а инкрементально, каждым Epic'ом при реализации соответствующего
+# модуля (EPIC-01 identity → /auth/*, EPIC-02 catalog → /catalog/*, и т.д.).
+# Правило: добавляя новый HTTP-хендлер в apps/api, ОБЯЗАТЕЛЬНО добавьте
+# соответствующий path сюда в том же PR/коммите — контракт не должен
+# расходиться с реализацией. См. AGENTS.md, раздел "Документация в ходе
+# разработки".
+#
+# Валидация: любой валидатор OpenAPI 3.1 (например `npx @redocly/cli lint
+# docs/api/openapi.yaml`) должен проходить без ошибок на каждом коммите.
+
+openapi: 3.1.0
+
+info:
+  title: Dopamine Market API
+  description: >
+    Синтетический маркетплейс/сервис доставки — портфолио-проект.
+    Монетизация: фиксированная плата 10₽ за оформленный заказ.
+    Полностью синтетический каталог и курьеры, симуляция доставки —
+    таймер-стейт-машина (см. docs/prd/PRD.md, ADR-005, ADR-009).
+  version: "1.0.0"
+  contact:
+    name: Dopamine Market (портфолио-проект)
+
+servers:
+  - url: http://localhost:8080
+    description: Локальная разработка
+  - url: https://api.dopamine-market.example.com
+    description: Продакшн (заглушка домена, заменить при реальном деплое)
+
+tags:
+  - name: system
+    description: Служебные эндпоинты (health, readiness)
+  - name: identity
+    description: Регистрация, вход, сессии (EPIC-01)
+  - name: catalog
+    description: Каталог товаров и категорий (EPIC-02)
+  - name: pickup
+    description: Пункты выдачи (EPIC-03)
+  - name: cart
+    description: Корзина пользователя (EPIC-04)
+  - name: order
+    description: Оформление и жизненный цикл заказа (EPIC-05)
+  - name: payment
+    description: Оплата заказа — mock и YooKassa (EPIC-06)
+  - name: delivery
+    description: Симуляция доставки/трекинг курьера (EPIC-07)
+  - name: notification
+    description: Уведомления о статусе заказа (EPIC-08)
+
+paths:
+  /healthz:
+    get:
+      tags: [system]
+      summary: Проверка готовности сервиса и его зависимостей
+      description: >
+        Агрегирует health-check всех зарегистрированных зависимостей
+        (Postgres, Redis, ...). См. internal/platform/httpserver.
+      operationId: getHealthz
+      security: []
+      responses:
+        "200":
+          description: Сервис и все зависимости доступны
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: Хотя бы одна зависимость недоступна
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # Пути ниже будут добавлены соответствующими Epic'ами:
+  #   /auth/register, /auth/login, /auth/refresh, /auth/logout      — EPIC-01
+  #   /catalog/categories, /catalog/products, /catalog/products/{id} — EPIC-02
+  #   /pickup-points, /pickup-points/{id}                            — EPIC-03
+  #   /cart, /cart/items, /cart/items/{id}                           — EPIC-04
+  #   /orders, /orders/{id}, /orders/{id}/status                     — EPIC-05
+  #   /payments/webhook/yookassa, /payments/{orderId}                — EPIC-06
+  #   /orders/{id}/tracking (SSE/WS)                                 — EPIC-07
+  #   /notifications                                                  — EPIC-08
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        Access-токен, выданный /auth/login (ADR-007, HS256). Передаётся
+        в заголовке Authorization: Bearer <token>.
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, checks]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        checks:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [ok, error]
+          description: Карта "имя зависимости" → результат проверки.
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Машиночитаемый код ошибки (SCREAMING_SNAKE_CASE).
+              examples: ["VALIDATION_ERROR", "NOT_FOUND", "UNAUTHORIZED"]
+            message:
+              type: string
+              description: Человекочитаемое описание, безопасное для показа пользователю.
+            details:
+              type: object
+              additionalProperties: true
+              description: Опциональные структурированные детали (например, поля с ошибками валидации).
+
+  responses:
+    ValidationError:
+      description: Ошибка валидации входных данных
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Отсутствует или недействителен access-токен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+security:
+  - bearerAuth: []
