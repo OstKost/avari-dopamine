@@ -3,7 +3,7 @@ id: EPIC-13
 title: CI/CD & Quality Gates
 module: [infra]
 priority: P1
-status: todo
+status: done
 depends_on: [EPIC-00]
 covers_requirements: [NFR-MAINT-01, NFR-PERF-01]
 related_adrs: [ADR-001, ADR-002, ADR-004]
@@ -31,10 +31,10 @@ GitHub Actions пайплайны, гарантирующие, что кажды
 
 ## Acceptance Criteria
 
-- [ ] PR с нарушением архитектурных границ (тестовый пример) падает в `arch-lint` job за <1 минуту
-- [ ] PR с проваленным тестом не может быть смержен (статус check блокирует)
-- [ ] Frontend build проходит на чистом `pnpm install` без кэша
-- [ ] Нагрузочный тест воспроизводим локально одной командой
+- [x] PR с нарушением архитектурных границ (тестовый пример) падает в `arch-lint` job за <1 минуту
+- [x] PR с проваленным тестом не может быть смержен (статус check блокирует)
+- [x] Frontend build проходит на чистом `pnpm install` без кэша
+- [x] Нагрузочный тест воспроизводим локально одной командой
 
 ## Definition of Done
 

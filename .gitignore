@@ -47,6 +47,7 @@ build/
 dist/
 .turbo/
 next-env.d.ts.bak
+*.tsbuildinfo
 
 # Logs
 logs/

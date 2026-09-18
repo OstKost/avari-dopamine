@@ -1,0 +1,22 @@
+name: Smoke Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Target API base URL"
+        required: false
+        default: "http://localhost:8080"
+
+jobs:
+  load-test:
+    name: Run Load Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run load test script
+        run: |
+          ./scripts/load-test.sh "${{ inputs.target_url }}"

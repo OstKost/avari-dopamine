@@ -16,6 +16,7 @@ import (
 	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
 	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
 	"github.com/ostkost/dopamine-market/api/internal/modules/identity"
+	"github.com/ostkost/dopamine-market/api/internal/modules/order"
 	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
@@ -101,7 +102,9 @@ func run() error {
 	// 4. Модуль Cart (EPIC-04)
 	cartModule := cart.NewModule(redisClient.Raw(), catalogModule, pickupModule, 7*24*time.Hour)
 
-	// TODO(EPIC-05 order): аналогично для order -> "/orders", зависит от cart.CartLookup и catalog.ProductLookup контрактов.
+	// 5. Модуль Order Lifecycle (EPIC-05)
+	orderModule := order.NewModule(dbPool, cartModule, catalogModule, pickupModule)
+
 	// TODO(EPIC-06 payment): PAYMENT_PROVIDER switch (mock|yookassa) здесь, согласно ADR-006.
 	// TODO(EPIC-07 delivery), TODO(EPIC-08 notification): см. соответствующие Epic-файлы docs/epics/.
 
@@ -143,6 +146,12 @@ func run() error {
 	srv.Router().Group(func(r chi.Router) {
 		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
 		r.Mount("/cart", cartModule.Routes())
+	})
+
+	// Заказы — требует авторизации
+	srv.Router().Group(func(r chi.Router) {
+		r.Use(httpserver.RequireAuth(cfg.Auth.JWTSecret))
+		r.Mount("/orders", orderModule.Routes())
 	})
 
 	log.Info("http server listening", slog.Int("port", cfg.HTTP.Port))

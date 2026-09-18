@@ -492,6 +492,124 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cart"
+  # ---------------- Orders (EPIC-05) ----------------
+  /orders:
+    post:
+      tags: [order]
+      summary: Оформление заказа из текущей корзины
+      description: Фиксированная стоимость 10.00 RUB (INV-01). Очищает корзину и генерирует событие order.created.v1 (ADR-003).
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "201":
+          description: Заказ успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Конфликт — уже есть активный заказ в процессе оплаты (INV-02)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags: [order]
+      summary: Список заказов текущего пользователя
+      operationId: listOrders
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Order"
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /orders/{id}:
+    get:
+      tags: [order]
+      summary: Получение деталей заказа по ID
+      operationId: getOrderById
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /orders/{id}/cancel:
+    post:
+      tags: [order]
+      summary: Отмена заказа пользователем
+      operationId: cancelOrder
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Заказ отменен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -626,6 +744,58 @@ components:
         fixed_order_cost:
           type: string
           example: "10.00"
+
+    OrderItem:
+      type: object
+      required: [product_id, name, category_name, price_rub, image_seed, quantity, subtotal_rub]
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category_name:
+          type: string
+        price_rub:
+          type: string
+          example: "10.00"
+        image_seed:
+          type: string
+        quantity:
+          type: integer
+        subtotal_rub:
+          type: string
+          example: "10.00"
+
+    Order:
+      type: object
+      required: [id, user_id, status, total_amount_rub, pickup_point, items, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [created, payment_pending, paid, assembling, courier_assigned, in_transit, delivered, payment_failed, cancelled]
+          example: "created"
+        total_amount_rub:
+          type: string
+          example: "10.00"
+        pickup_point:
+          $ref: "#/components/schemas/PickupPoint"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
     Error:
       type: object

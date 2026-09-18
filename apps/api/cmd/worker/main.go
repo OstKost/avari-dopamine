@@ -13,15 +13,26 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"golang.org/x/sync/errgroup"
+
+	"github.com/ostkost/dopamine-market/api/internal/modules/cart"
+	"github.com/ostkost/dopamine-market/api/internal/modules/catalog"
+	"github.com/ostkost/dopamine-market/api/internal/modules/order"
+	"github.com/ostkost/dopamine-market/api/internal/modules/pickup"
 	"github.com/ostkost/dopamine-market/api/internal/platform/config"
 	"github.com/ostkost/dopamine-market/api/internal/platform/db"
+	"github.com/ostkost/dopamine-market/api/internal/platform/kafka"
 	"github.com/ostkost/dopamine-market/api/internal/platform/logger"
+	"github.com/ostkost/dopamine-market/api/internal/platform/outbox"
+	"github.com/ostkost/dopamine-market/api/internal/platform/random"
 	"github.com/ostkost/dopamine-market/api/internal/platform/redis"
 )
 
@@ -80,18 +91,68 @@ func run() error {
 		}
 	}()
 
-	// TODO(EPIC-05 order + platform/outbox): запустить outbox-relay для
-	//   схем order/payment/delivery — единый relay-процесс, параметризуемый
-	//   списком схем (ADR-003 "единый процесс обслуживает outbox всех
-	//   модулей, чтобы не поднимать N воркеров на 100 MAU").
-	// TODO(EPIC-07 delivery + platform/scheduler): запустить scheduler poll
-	//   loop для scheduled_transitions (ADR-005).
-	// TODO(EPIC-05/06/07/08): запустить Kafka consumer'ы каждого модуля
-	//   параллельно через errgroup.Group, с graceful shutdown по ctx.
+	// Инициализация модулей для воркера
+	rnd := random.New(time.Now().UnixNano())
+	catalogModule := catalog.NewModule(dbPool.Raw())
+	pickupModule := pickup.NewModule(dbPool.Raw(), rnd)
+	cartModule := cart.NewModule(redisClient.Raw(), catalogModule, pickupModule, 7*24*time.Hour)
+	orderModule := order.NewModule(dbPool, cartModule, catalogModule, pickupModule)
 
-	log.Info("worker bootstrap complete, no background jobs registered yet (EPIC-00 baseline)")
+	// Outbox Relay (ADR-003): единый релей для опроса outbox_events
+	kafkaProducer := kafka.NewProducer(kafka.Config{
+		Brokers:  cfg.Kafka.Brokers,
+		ClientID: "dopamine-worker-outbox",
+	}, "")
+	defer func() {
+		if closeErr := kafkaProducer.Close(); closeErr != nil {
+			log.Error("closing kafka producer", slog.String("error", closeErr.Error()))
+		}
+	}()
 
-	<-ctx.Done()
+	outboxRelay := outbox.NewRelay(dbPool, kafkaProducer, []string{"order"}, log, 500*time.Millisecond)
+
+	var g errgroup.Group
+
+	// 1. Запуск outbox relay
+	g.Go(func() error {
+		log.Info("starting outbox relay", slog.Any("schemas", []string{"order"}))
+		if err := outboxRelay.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			log.Error("outbox relay failed", slog.String("error", err.Error()))
+			return err
+		}
+		return nil
+	})
+
+	// 2. Запуск Kafka consumer для order-service (ADR-003: consumer group per module)
+	if len(cfg.Kafka.Brokers) > 0 {
+		orderConsumer := kafka.NewConsumer(
+			kafka.Config{Brokers: cfg.Kafka.Brokers, ClientID: "dopamine-order-consumer"},
+			"dopamine.events",
+			"order-service-group",
+		)
+		defer func() {
+			if closeErr := orderConsumer.Close(); closeErr != nil {
+				log.Error("closing order consumer", slog.String("error", closeErr.Error()))
+			}
+		}()
+
+		g.Go(func() error {
+			log.Info("starting order kafka consumer")
+			handler := orderModule.ConsumerHandler().HandleMessage
+			if err := orderConsumer.Run(ctx, handler); err != nil && !errors.Is(err, context.Canceled) {
+				log.Error("order consumer failed", slog.String("error", err.Error()))
+				return err
+			}
+			return nil
+		})
+	}
+
+	log.Info("worker bootstrap complete, background jobs running")
+
+	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
+		return fmt.Errorf("worker background task error: %w", err)
+	}
+
 	log.Info("worker shutdown complete")
 	return nil
 }

@@ -26,22 +26,18 @@ type Config struct {
 // не завязанная на конкретную клиентскую библиотеку (упрощает замену
 // библиотеки в будущем без изменения кода модулей).
 type Message struct {
+	Topic   string
 	Key     []byte
 	Value   []byte
 	Headers map[string]string // включает "traceparent" для OTel propagation (ADR-010)
 }
 
-// Producer публикует сообщения в указанный топик. Используется
-// internal/platform/outbox relay-воркером (ADR-003) — единственным
-// компонентом, который реально пишет в Kafka; сами модули только
-// пишут в outbox_events таблицу.
+// Producer публикует сообщения в указанный топик или топик из Message.
 type Producer struct {
 	writer *kafkago.Writer
 }
 
-// NewProducer создаёт продюсера для конкретного топика. Один Producer на
-// топик — переиспользуется во всех вызовах (kafka-go writer безопасен для
-// конкурентного использования).
+// NewProducer создаёт продюсера. Если topic пустой, топик берётся из каждого Message.
 func NewProducer(cfg Config, topic string) *Producer {
 	return &Producer{
 		writer: &kafkago.Writer{
@@ -64,13 +60,14 @@ func (p *Producer) Publish(ctx context.Context, msg Message) error {
 	}
 
 	err := p.writer.WriteMessages(ctx, kafkago.Message{
+		Topic:   msg.Topic,
 		Key:     msg.Key,
 		Value:   msg.Value,
 		Headers: headers,
 		Time:    time.Now(),
 	})
 	if err != nil {
-		return fmt.Errorf("publishing message to topic %s: %w", p.writer.Topic, err)
+		return fmt.Errorf("publishing message to kafka: %w", err)
 	}
 	return nil
 }

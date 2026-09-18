@@ -3,7 +3,7 @@ id: EPIC-09
 title: Frontend Shell & Design System
 module: [web]
 priority: P0
-status: todo
+status: done
 depends_on: [EPIC-00]
 covers_requirements: [NFR-MAINT-01]
 related_adrs: [ADR-009, ADR-007]
@@ -32,11 +32,11 @@ scope:
 
 ## Acceptance Criteria
 
-- [ ] `pnpm dev` поднимает приложение, страницы логина/регистрации работают против реального backend (EPIC-01)
-- [ ] Middleware корректно блокирует доступ к `/cart`, `/checkout`, `/orders` без валидного access-токена
-- [ ] Типы API генерируются из `openapi.yaml` без ручного дублирования интерфейсов
-- [ ] TypeScript strict mode включён, `pnpm lint`/`pnpm typecheck` без ошибок
-- [ ] Дизайн-система документирована (Storybook опционален, но минимум — README в `components/ui/` с примерами использования)
+- [x] `pnpm dev` поднимает приложение, страницы логина/регистрации работают против реального backend (EPIC-01)
+- [x] Middleware корректно блокирует доступ к `/cart`, `/checkout`, `/orders` без валидного access-токена
+- [x] Типы API генерируются из `openapi.yaml` без ручного дублирования интерфейсов
+- [x] TypeScript strict mode включён, `pnpm lint`/`pnpm typecheck` без ошибок
+- [x] Дизайн-система документирована (Storybook опционален, но минимум — README в `components/ui/` с примерами использования)
 
 ## Definition of Done
 

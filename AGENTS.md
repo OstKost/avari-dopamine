@@ -106,7 +106,10 @@
 | EPIC-02 Catalog & Synthetic Data | ✅ done | Категории, товары с ценой 10₽ (INV-01), полнотекстовый поиск Postgres FTS, детерминированный сид 200 товаров. |
 | EPIC-03 Pickup Points | ✅ done | Сферическая геодезия DestinationPoint, генерация 5-8 точек в [100, 500]м (INV-03), fallback Ростов-на-Дону, property-based тесты. |
 | EPIC-04 Cart | ✅ done | Redis-backed корзина (TTL 7 дней), иммутабельный Cart VO, обогащение из ProductLookup и PickupLookup, контракт CartLookup. |
-| EPIC-05..EPIC-14 | ⬜ not started | См. `docs/epics/EPIC-NN-*.md` |
+| EPIC-05 Order Lifecycle | ✅ done | Создание заказа, стейт-машина переходов, transactional outbox relay, processed_events идемпотентность, INV-01/INV-02. |
+| EPIC-09 Frontend Shell | ✅ done | Next.js 15, App Router, Tailwind CSS дизайн-система, генерация типов OpenAPI, Auth layout/middleware, SSR skeleton loaders. |
+| EPIC-13 CI/CD & Quality Gates | ✅ done | GitHub Actions workflows (Backend CI, Frontend CI, Arch Lint Gate, Dependabot, Smoke Load Test). |
+| EPIC-06..EPIC-14 | ⬜ not started | См. `docs/epics/EPIC-NN-*.md` |
 
 ### EPIC-00: заметки о реализации
 

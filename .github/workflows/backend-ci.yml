@@ -1,0 +1,59 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  test:
+    name: Backend Tests & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.4"
+          cache-dependency-path: apps/api/go.sum
+
+      - name: Verify Go dependencies
+        run: |
+          cd apps/api
+          export GOTOOLCHAIN=local
+          go mod verify
+
+      - name: Run Architecture Linter
+        run: |
+          cd apps/api
+          export GOTOOLCHAIN=local
+          make lint-arch
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.62.2
+          working-directory: apps/api
+          args: --timeout=5m
+
+      - name: Build backend binaries
+        run: |
+          cd apps/api
+          export GOTOOLCHAIN=local
+          go build -v ./...
+
+      - name: Run unit & race tests
+        run: |
+          cd apps/api
+          export GOTOOLCHAIN=local
+          go test -v -race -cover ./...
