@@ -81,6 +81,12 @@ export function Header() {
             <Link href="/catalog" className="hover:text-amber-300 transition-colors">
               Каталог
             </Link>
+            <Link href="/about" className="hover:text-amber-300 transition-colors">
+              О проекте
+            </Link>
+            <Link href="/tech" className="hover:text-teal-300 transition-colors font-medium">
+              Архитектура
+            </Link>
             <Link href="/orders" className="hover:text-amber-300 transition-colors flex items-center gap-1.5">
               <Package className="h-4 w-4" />
               Заказы

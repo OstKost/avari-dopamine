@@ -318,13 +318,17 @@ func seedCatalog(ctx context.Context, repo port.CatalogRepository) error {
 			prodID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(fmt.Sprintf("product-%d-%d-%s", catIdx, prodIdx, pt.Name)))
 			imageSeed := fmt.Sprintf("prod-%d-%d", catIdx+1, prodIdx+1)
 
+			// Реалистичные каталожные цены (INV-01: сумма заказа со скидкой/промокодом всегда 10.00 RUB)
+			priceTiers := []int64{190, 290, 390, 490, 590, 750, 890, 990, 1290, 1490, 1790, 1990, 2490, 2890, 3490}
+			priceVal := priceTiers[(catIdx*7+prodIdx)%len(priceTiers)]
+
 			prod := domain.NewProduct(
 				prodID,
 				catID,
 				ct.Name,
 				pt.Name,
 				pt.Description,
-				decimal.NewFromInt(10), // INV-01: 10.00 RUB
+				decimal.NewFromInt(priceVal),
 				imageSeed,
 				now,
 			)

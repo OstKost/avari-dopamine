@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Trash2, Plus, Minus, Sparkles, MapPin, ShoppingBag, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, isUnauthorizedError } from "@/lib/api/client";
 import { formatPrice } from "@/lib/utils";
 import { getProductImageUrl } from "@/lib/utils/product-image";
 
@@ -45,17 +45,34 @@ export default function CartPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("DOPAMINE");
+  const [isPromoApplied, setIsPromoApplied] = useState(true);
+  const [promoMessage, setPromoMessage] = useState<string | null>("Промокод «DOPAMINE» успешно применен (- скидка до 10 ₽)");
+
+  const handleApplyPromo = () => {
+    const trimmed = promoInput.trim().toUpperCase();
+    if (trimmed === "DOPAMINE" || trimmed === "AVARI" || trimmed === "10RUB" || trimmed === "PROMO10") {
+      setIsPromoApplied(true);
+      setPromoMessage(`Промокод «${trimmed}» успешно применен: любой заказ 10.00 ₽!`);
+    } else if (trimmed === "") {
+      setIsPromoApplied(false);
+      setPromoMessage(null);
+    } else {
+      setIsPromoApplied(false);
+      setPromoMessage("Неверный промокод. Попробуйте промокод DOPAMINE.");
+    }
+  };
 
   const fetchCart = useCallback(async () => {
     try {
       const data = await apiFetch<Cart>("/cart");
       setCart(data);
     } catch (err: unknown) {
+      if (isUnauthorizedError(err)) {
+        router.push("/login?next=/cart");
+        return;
+      }
       if (err instanceof Error) {
-        if (err.message.includes("401")) {
-          router.push("/login?next=/cart");
-          return;
-        }
         setError(err.message);
       }
     } finally {
@@ -177,28 +194,32 @@ export default function CartPage() {
         </div>
       )}
 
-      {/* Auto-applied Promo Code Banner */}
+      {/* Promo Code & Special Offer Banner */}
       <div className="rounded-3xl bg-gradient-to-r from-[#F2B84B]/20 via-[#54ACBF]/20 to-[#FFD37A]/20 p-0.5 border border-amber-400/40 shadow-glow-amber">
         <div className="rounded-[22px] bg-[#0B1622]/95 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
+          <div className="space-y-1 max-w-xl">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-amber-400 animate-spin" />
               <span className="font-extrabold text-xs tracking-wide text-amber-300 uppercase">
-                Промокод «AVARI_DOPAMINE» применен
+                {isPromoApplied ? "Спецпредложение «DOPAMINE» активно" : "Активация промокода"}
               </span>
             </div>
-            <h3 className="text-xl sm:text-2xl font-black text-[#F4F1E8]">
-              Скидка на всю корзину: заказ всего за 10.00 ₽
+            <h3 className="text-lg sm:text-xl font-black text-[#F4F1E8]">
+              {isPromoApplied
+                ? "Скидка на всю корзину: заказ всего за 10.00 ₽"
+                : "Введите промокод для фиксированной цены 10 ₽"}
             </h3>
             <p className="text-xs sm:text-sm text-[#9FB3C4]">
-              Каталожная стоимость товаров {formatPrice(cart.total_price_rub)} пересчитана промокодом по инварианту INV-01.
+              {isPromoApplied
+                ? `Каталожная стоимость товаров ${formatPrice(cart.total_price_rub)} пересчитана по промокоду DOPAMINE.`
+                : "Примените промокод DOPAMINE, чтобы получить скидку на любой состав корзины."}
             </p>
           </div>
 
           <div className="flex flex-col items-start sm:items-end flex-shrink-0">
-            <span className="text-[11px] font-semibold text-[#9FB3C4]">К оплате по промокоду</span>
+            <span className="text-[11px] font-semibold text-[#9FB3C4]">К оплате</span>
             <span className="text-2xl sm:text-3xl font-black text-amber-400 drop-shadow-[0_0_12px_rgba(242,184,75,0.4)]">
-              10.00 ₽
+              {isPromoApplied ? "10.00 ₽" : formatPrice(cart.total_price_rub)}
             </span>
           </div>
         </div>
@@ -308,6 +329,35 @@ export default function CartPage() {
             </CardContent>
           </Card>
 
+          {/* Promo Code Input Card */}
+          <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl">
+            <CardContent className="p-4 sm:p-5 space-y-3">
+              <span className="text-xs font-bold text-[#F4F1E8] block">Промокод на скидку</span>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
+                  placeholder="Введите промокод"
+                  className="flex-1 px-3 py-2 text-xs font-mono uppercase rounded-xl bg-[#050B14] border border-[#1E3A50] text-[#F4F1E8] focus:border-amber-400 focus:outline-none"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleApplyPromo}
+                  className="text-xs rounded-xl border-[#1E3A50] text-[#F4F1E8] hover:bg-[#1E3A50]"
+                >
+                  {isPromoApplied ? "Обновить" : "Применить"}
+                </Button>
+              </div>
+              {promoMessage && (
+                <p className={`text-[11px] font-medium ${isPromoApplied ? "text-amber-300" : "text-rose-400"}`}>
+                  {promoMessage}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Summary & Checkout matching screen-04 */}
           <Card className="border-[#1E3A50] bg-[#0B1622]/90 shadow-sm rounded-2xl">
             <CardContent className="p-5 sm:p-6 space-y-4">
@@ -320,14 +370,16 @@ export default function CartPage() {
                   <span>Доставка в ПВЗ</span>
                   <span className="text-teal-400 font-semibold">Бесплатно</span>
                 </div>
-                <div className="flex justify-between text-amber-300 font-bold">
-                  <span>Промокод «AVARI_DOPAMINE»</span>
-                  <span>- {formatPrice(Math.max(0, parseFloat(cart.total_price_rub) - 10.0))}</span>
-                </div>
+                {isPromoApplied && (
+                  <div className="flex justify-between text-amber-300 font-bold">
+                    <span>Скидка по промокоду</span>
+                    <span>- {formatPrice(Math.max(0, parseFloat(cart.total_price_rub) - 10.0))}</span>
+                  </div>
+                )}
                 <div className="border-t border-[#1E3A50] pt-3 flex justify-between items-center text-base sm:text-lg font-black text-[#F4F1E8]">
                   <span>Итого к оплате</span>
                   <span className="text-2xl font-black text-amber-400 drop-shadow-[0_0_8px_rgba(242,184,75,0.4)]">
-                    10.00 ₽
+                    {isPromoApplied ? "10.00 ₽" : formatPrice(cart.total_price_rub)}
                   </span>
                 </div>
               </div>

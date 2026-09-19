@@ -82,7 +82,7 @@ export default async function ProductDetailPage({
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-400/15 border border-amber-400/30 text-amber-400 flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Инвариант INV-01: Любой заказ ровно 10 ₽</span>
+                <span>Спеццена доставки: 10.00 ₽ по промокоду</span>
               </span>
             </div>
 
@@ -91,7 +91,7 @@ export default async function ProductDetailPage({
             </h1>
 
             <p className="text-base text-[#9FB3C4] leading-relaxed">
-              {product.description || "Высококачественный синтетический товар из каталога Avari Dopamine. Гарантия моментального удовольствия."}
+              {product.description || "Высококачественный оригинальный товар из каталога Avari Dopamine. Гарантия моментального удовольствия."}
             </p>
 
             <div className="pt-4 border-t border-[#1E3A50]">
@@ -101,7 +101,7 @@ export default async function ProductDetailPage({
                   {formatPrice(product.price_rub)}
                 </span>
                 <span className="text-xs text-amber-400 font-semibold">
-                  (при заказе действует промокод на 10 ₽)
+                  (в корзине действует промокод DOPAMINE на 10 ₽)
                 </span>
               </div>
             </div>

@@ -113,7 +113,7 @@ export function OrderTrackingView({ initialOrder }: OrderTrackingViewProps) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/15 border border-amber-400/30 text-amber-400">
-              INV-01: 10.00 ₽
+              Оплачено: 10.00 ₽
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-500/15 border border-teal-500/30 text-teal-300 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-teal-400" />
@@ -161,7 +161,7 @@ export function OrderTrackingView({ initialOrder }: OrderTrackingViewProps) {
               {initialOrder.pickup_point.name}
             </h4>
             <p className="text-xs text-[#9FB3C4]">
-              Синтетический пункт выдачи Avari Dopamine. Дистанция ~{Math.round(initialOrder.pickup_point.distance_meters)}м от вас.
+              Пункт выдачи заказов. Дистанция ~{Math.round(initialOrder.pickup_point.distance_meters)}м от вас.
             </p>
           </div>
         </CardContent>
@@ -205,13 +205,13 @@ export function OrderTrackingView({ initialOrder }: OrderTrackingViewProps) {
             <div className="flex justify-between text-amber-400 font-semibold items-center">
               <span className="flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5" />
-                <span>Промокод AVARI_DOPAMINE</span>
+                <span>Скидка по промокоду</span>
               </span>
               <span>-{formatPrice(discountAmount.toFixed(2))}</span>
             </div>
 
             <div className="pt-3 border-t border-[#1E3A50] flex justify-between items-center text-lg font-black text-[#F4F1E8]">
-              <span>Итого оплачено (INV-01)</span>
+              <span>Итого оплачено</span>
               <span className="text-2xl font-black text-amber-400">
                 {formatPrice(initialOrder.total_amount_rub || "10.00")}
               </span>

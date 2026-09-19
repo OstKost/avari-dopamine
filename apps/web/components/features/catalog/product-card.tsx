@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, isUnauthorizedError } from "@/lib/api/client";
 import { getProductImageUrl } from "@/lib/utils/product-image";
 import { formatPrice } from "@/lib/utils";
 
@@ -49,8 +49,9 @@ export function ProductCard({
     } catch (err) {
       console.error("Failed to add item to cart:", err);
       // If unauthorized, redirect to login
-      if (err instanceof Error && err.message.includes("401")) {
-        window.location.href = "/login?next=/catalog";
+      if (isUnauthorizedError(err)) {
+        const nextUrl = typeof window !== "undefined" ? (window.location.pathname + window.location.search) : "/catalog";
+        window.location.href = `/login?next=${encodeURIComponent(nextUrl || "/catalog")}`;
       }
     } finally {
       setIsAdding(false);

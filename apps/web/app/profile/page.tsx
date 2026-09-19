@@ -86,7 +86,7 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
   {
     id: "big-basket",
     title: "Полная корзина",
-    description: "Соберите корзину из 10+ товаров и примените промокод INV-01",
+    description: "Соберите корзину из 10+ товаров и примените промокод DOPAMINE",
     xp_reward: 100,
     is_unlocked: false,
     progress: 4,
@@ -386,7 +386,7 @@ export default function ProfilePage() {
             Просмотрите статус и архив ваших заказов
           </h3>
           <p className="text-xs text-[#9FB3C4] max-w-md">
-            Все заказы выполняются по правилу INV-01 ровно за 10 ₽ с применением скидки Avari Dopamine.
+            Все заказы выполняются по специальной цене 10 ₽ с применением промокода Avari Dopamine.
           </p>
         </div>
 

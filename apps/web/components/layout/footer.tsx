@@ -28,7 +28,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-sm text-[#9FB3C4] max-w-sm leading-relaxed">
-              Синтетический маркетплейс предвкушения и мгновенной радости. Фиксированная цена любого заказа — ровно 10 рублей (INV-01).
+              Маркетплейс мгновенной радости и предвкушения. Любой заказ всего за 10 рублей по промокоду DOPAMINE.
             </p>
           </div>
 
@@ -57,6 +57,16 @@ export function Footer() {
                   🏆 Достижения и стрик
                 </Link>
               </li>
+              <li>
+                <Link href="/about" className="hover:text-amber-300 transition-colors font-medium text-amber-400">
+                  ✨ О проекте и правила
+                </Link>
+              </li>
+              <li>
+                <Link href="/tech" className="hover:text-teal-300 transition-colors font-medium text-teal-400">
+                  ⚙️ Архитектура (For Tech Leads)
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -79,11 +89,11 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2 text-xs text-[#5E7488]">
                 <ShieldCheck className="h-4 w-4 text-teal-400" />
-                <span>INV-01: Любой заказ 10 ₽</span>
+                <span>Фикс-прайс: 10 ₽ по промокоду</span>
               </li>
               <li className="flex items-center gap-2 text-xs text-[#5E7488]">
                 <Zap className="h-4 w-4 text-amber-400" />
-                <span>Синтетическая доставка</span>
+                <span>Быстрая интерактивная доставка</span>
               </li>
             </ul>
           </div>

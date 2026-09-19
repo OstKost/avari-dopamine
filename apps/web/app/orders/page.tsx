@@ -65,7 +65,7 @@ export default async function OrdersPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-400/15 border border-amber-400/30 text-amber-400">
-              INV-01: 10 ₽
+              Фикс-цена: 10 ₽
             </span>
           </div>
           <h1 className="text-3xl font-black text-[#F4F1E8] tracking-tight">

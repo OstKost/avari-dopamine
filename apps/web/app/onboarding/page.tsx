@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, isUnauthorizedError } from "@/lib/api/client";
 
 interface PickupPoint {
   id: string;
@@ -46,11 +46,11 @@ export default function OnboardingPage() {
         setSelectedPointId(res.points[0].id);
       }
     } catch (err: unknown) {
+      if (isUnauthorizedError(err)) {
+        router.push("/login?next=/onboarding");
+        return;
+      }
       if (err instanceof Error) {
-        if (err.message.includes("401")) {
-          router.push("/login?next=/onboarding");
-          return;
-        }
         setError(err.message);
       } else {
         setError("Не удалось сгенерировать пункты выдачи.");
@@ -97,6 +97,10 @@ export default function OnboardingPage() {
 
       router.push("/catalog");
     } catch (err: unknown) {
+      if (isUnauthorizedError(err)) {
+        router.push("/login?next=/onboarding");
+        return;
+      }
       if (err instanceof Error) {
         setError(err.message);
       }
@@ -110,7 +114,7 @@ export default function OnboardingPage() {
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-400 text-xs font-bold">
           <Sparkles className="h-4 w-4" />
-          <span>Синтетические ПВЗ (INV-03)</span>
+          <span>Ближайшие пункты выдачи</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-[#F4F1E8] tracking-tight">
           Выберите удобный пункт выдачи

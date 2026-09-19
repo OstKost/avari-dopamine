@@ -30,7 +30,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-2">
             <Badge variant="gold" className="px-4 py-1 text-xs gap-1.5 shadow-glow-amber">
               <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-spin" />
-              <span>Фиксированная цена: 10.00 ₽ за любой заказ</span>
+              <span>Спеццена доставки: 10.00 ₽ по промокоду DOPAMINE</span>
             </Badge>
           </div>
 
@@ -42,8 +42,8 @@ export default function HomePage() {
             в каждом заказе
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-zinc-600 dark:text-zinc-300 max-w-2xl mx-auto">
-            Синтетический маркетплейс с реальной стейт-машиной доставки, геодезической генерацией ПВЗ и transactional outbox.
+          <p className="mt-6 text-lg sm:text-xl text-[#9FB3C4] max-w-2xl mx-auto leading-relaxed">
+            Маркетплейс мгновенной радости и предвкушения: выбирайте классные штуки для настроения, применяйте промокод и наблюдайте за быстрой доставкой курьером.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -53,9 +53,9 @@ export default function HomePage() {
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="text-base">
-                Войти в профиль
+            <Link href="/about">
+              <Button size="lg" variant="outline" className="text-base border-[#1E3A50] text-[#F4F1E8] hover:bg-[#1E3A50]">
+                Как это работает
               </Button>
             </Link>
           </div>
@@ -71,10 +71,10 @@ export default function HomePage() {
                 <Zap className="h-6 w-6" />
               </div>
               <h3 className="text-lg font-bold text-[#F4F1E8]">
-                10 ₽ Фиксированная цена
+                Фикс-прайс 10 ₽ по промокоду
               </h3>
               <p className="text-xs sm:text-sm text-[#9FB3C4] leading-relaxed">
-                Сколько бы товаров ни было в корзине, промокод автоматически делает скидку до фиксированных 10.00 ₽ (INV-01).
+                Набирайте любые товары в корзину — секретный промокод снижает итоговую стоимость всего заказа до символических 10 рублей.
               </p>
             </CardContent>
           </Card>
@@ -85,10 +85,10 @@ export default function HomePage() {
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <h3 className="text-lg font-bold text-[#F4F1E8]">
-                Живой трекинг и ПВЗ
+                Быстрая доставка рядом с вами
               </h3>
               <p className="text-xs sm:text-sm text-[#9FB3C4] leading-relaxed">
-                Сферическая геодезия генерирует 5–8 точек выдачи в 100–500 метрах, а стейт-машина симулирует путь курьера в реальном времени.
+                Удобные пункты выдачи в 2-5 минутах ходьбы и интерактивный живой трекинг движения курьера прямо на экране.
               </p>
             </CardContent>
           </Card>

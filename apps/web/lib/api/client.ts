@@ -12,6 +12,39 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
 }
 
+export class ApiError extends Error {
+  status: number;
+  statusText: string;
+  data?: unknown;
+
+  constructor(status: number, statusText: string, message: string, data?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.statusText = statusText;
+    this.data = data;
+  }
+}
+
+export function isUnauthorizedError(err: unknown): boolean {
+  if (err instanceof ApiError && err.status === 401) {
+    return true;
+  }
+  if (err && typeof err === "object" && "status" in err && (err as { status: unknown }).status === 401) {
+    return true;
+  }
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    return (
+      msg.includes("401") ||
+      msg.includes("unauthorized") ||
+      msg.includes("missing access token") ||
+      msg.includes("invalid or expired access token")
+    );
+  }
+  return false;
+}
+
 export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   let url = `${API_BASE_URL}${endpoint}`;
 
@@ -56,17 +89,21 @@ export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}
 
   if (!response.ok) {
     let errorMsg = `HTTP Error ${response.status}: ${response.statusText}`;
+    let errJson: unknown = null;
     try {
-      const errJson = await response.json();
-      if (errJson && errJson.message) {
-        errorMsg = errJson.message;
-      } else if (errJson && errJson.error) {
-        errorMsg = errJson.error;
+      errJson = await response.json();
+      if (errJson && typeof errJson === "object") {
+        const obj = errJson as Record<string, unknown>;
+        if (typeof obj.message === "string") {
+          errorMsg = obj.message;
+        } else if (typeof obj.error === "string") {
+          errorMsg = obj.error;
+        }
       }
     } catch {
       // fallback to status text
     }
-    throw new Error(errorMsg);
+    throw new ApiError(response.status, response.statusText, errorMsg, errJson);
   }
 
   // Handle 204 No Content

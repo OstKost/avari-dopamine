@@ -285,6 +285,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Статистика пользователя и streak заказов (EPIC-14, FR-GAMIFY-01) */
+        get: operations["getUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/orders/{id}": {
         parameters: {
             query?: never;
@@ -313,6 +330,26 @@ export interface paths {
         put?: never;
         /** Отмена заказа пользователем */
         post: operations["cancelOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SSE-стриминг обновлений статуса заказа в реальном времени (EPIC-08, ADR-009)
+         * @description Возвращает Server-Sent Events поток. При установке соединения клиент получает событие `snapshot` с актуальным состоянием заказа и курьера. Последующие изменения статуса приходят как события `status_changed`. Каждые 15 секунд отправляется комментарий `: keep-alive\n\n`.
+         */
+        get: operations["streamOrderEvents"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1085,6 +1122,36 @@ export interface operations {
             };
         };
     };
+    getUserStats: {
+        parameters: {
+            query?: {
+                /** @description Имя часового пояса клиента (IANA time zone, например Europe/Moscow) */
+                tz?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        total_orders?: number;
+                        current_streak_days?: number;
+                        longest_streak_days?: number;
+                        total_saved_rub?: string;
+                        /** Format: date-time */
+                        last_order_at?: string;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     getOrderById: {
         parameters: {
             query?: never;
@@ -1118,16 +1185,39 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: never;
+    };
+    streamOrderEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
-            /** @description Заказ отменен */
+            /** @description SSE поток событий */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Order"];
+                    "text/event-stream": string;
                 };
             };
+            401: components["responses"]["Unauthorized"];
+            /** @description Запрещено (пользователь не является владельцем заказа) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     getMetrics: {
